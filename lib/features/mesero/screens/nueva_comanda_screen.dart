@@ -129,9 +129,17 @@ class _NuevaComandaScreenState extends State<NuevaComandaScreen> {
           ),
         ),
       ),
-      body: carta.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : ListView.separated(
+      body: carta.isEmpty && provider.error != null
+          ? _AvisoErrorCarta(
+              mensaje: provider.error!,
+              onReintentar: () {
+                provider.limpiarError();
+                provider.cargarCartaDisponible();
+              },
+            )
+          : carta.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: carta.length,
               separatorBuilder: (_, _) => const Divider(height: 1, color: AppColors.line),
@@ -177,6 +185,36 @@ class _NuevaComandaScreenState extends State<NuevaComandaScreen> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AvisoErrorCarta extends StatelessWidget {
+  final String mensaje;
+  final VoidCallback onReintentar;
+
+  const _AvisoErrorCarta({required this.mensaje, required this.onReintentar});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: AppColors.ember, size: 40),
+            const SizedBox(height: 12),
+            Text(mensaje, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.ember)),
+            const SizedBox(height: 16),
+            OutlinedButton.icon(
+              onPressed: onReintentar,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reintentar'),
+            ),
+          ],
         ),
       ),
     );

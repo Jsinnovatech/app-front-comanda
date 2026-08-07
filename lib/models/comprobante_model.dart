@@ -1,3 +1,5 @@
+import '../core/utils/json_parsers.dart';
+
 class ComprobanteModel {
   final int id;
   final int comandaId;
@@ -26,7 +28,7 @@ class ComprobanteModel {
       tipo: json['tipo'],
       serie: json['serie'],
       numero: json['numero'],
-      montoTotal: (json['monto_total'] as num).toDouble(),
+      montoTotal: aDouble(json['monto_total']),
       fechaEmision: DateTime.parse(json['fecha_emision']),
       estadoImpresion: json['estado_impresion'],
     );

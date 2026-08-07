@@ -1,3 +1,5 @@
+import '../core/utils/json_parsers.dart';
+
 class MesaResumenModel {
   final int id;
   final String numeroONombre;
@@ -46,7 +48,7 @@ class ComandaItemModel {
       comandaId: json['comanda_id'],
       platoId: json['plato_id'],
       platoNombre: json['plato_nombre'],
-      platoPrecio: json['plato_precio'] != null ? (json['plato_precio'] as num).toDouble() : null,
+      platoPrecio: json['plato_precio'] != null ? aDouble(json['plato_precio']) : null,
       cantidad: json['cantidad'],
       estado: json['estado'],
       cocineroId: json['cocinero_id'],
@@ -95,7 +97,7 @@ class ComandaModel {
       fechaCierre: json['fecha_cierre'] != null ? DateTime.parse(json['fecha_cierre']) : null,
       mesas: (json['mesas'] as List<dynamic>? ?? []).map((m) => MesaResumenModel.fromJson(m)).toList(),
       items: (json['items'] as List<dynamic>? ?? []).map((i) => ComandaItemModel.fromJson(i)).toList(),
-      total: (json['total'] as num).toDouble(),
+      total: aDouble(json['total']),
     );
   }
 }

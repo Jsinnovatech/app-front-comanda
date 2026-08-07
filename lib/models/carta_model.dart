@@ -1,3 +1,5 @@
+import '../core/utils/json_parsers.dart';
+
 class PlatoEnCartaModel {
   final int id;
   final String nombre;
@@ -20,7 +22,7 @@ class PlatoEnCartaModel {
       id: json['id'],
       nombre: json['nombre'],
       descripcion: json['descripcion'],
-      precio: (json['precio'] as num).toDouble(),
+      precio: aDouble(json['precio']),
       categoria: json['categoria'],
       fotoUrl: json['foto_url'],
     );

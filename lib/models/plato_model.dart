@@ -1,3 +1,5 @@
+import '../core/utils/json_parsers.dart';
+
 class PlatoModel {
   final int id;
   final int restauranteId;
@@ -25,7 +27,7 @@ class PlatoModel {
       restauranteId: json['restaurante_id'],
       nombre: json['nombre'],
       descripcion: json['descripcion'],
-      precio: (json['precio'] as num).toDouble(),
+      precio: aDouble(json['precio']),
       categoria: json['categoria'],
       disponible: json['disponible'],
       fotoUrl: json['foto_url'],
