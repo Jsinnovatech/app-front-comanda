@@ -1,7 +1,7 @@
 # Dockerfile para Flutter Web - Comanda Restaurantes
 # Optimizado para Railway deployment
 
-FROM ghcr.io/cirruslabs/flutter:stable AS build
+FROM ghcr.io/cirruslabs/flutter:3.44.8 AS build
 
 WORKDIR /app
 
