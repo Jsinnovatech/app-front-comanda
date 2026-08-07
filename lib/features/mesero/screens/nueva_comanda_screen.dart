@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../models/mesa_model.dart';
 import '../../../models/plato_model.dart';
 import '../../../providers/comanda_provider.dart';
+import '../../mantenimiento/widgets/selector_imagen.dart';
 import 'detalle_comanda_screen.dart';
 
 /// Selector de platos con steppers. Sirve para los dos caminos: abrir una
@@ -420,16 +421,18 @@ class _TarjetaPlato extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.yellowSoft,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(_emojiDeCategoria(plato.categoria), style: const TextStyle(fontSize: 22)),
-          ),
+          plato.fotoUrl != null && plato.fotoUrl!.isNotEmpty
+              ? MiniaturaDeFoto(fotoUrl: plato.fotoUrl, lado: 44)
+              : Container(
+                  width: 44,
+                  height: 44,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.yellowSoft,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(_emojiDeCategoria(plato.categoria), style: const TextStyle(fontSize: 22)),
+                ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

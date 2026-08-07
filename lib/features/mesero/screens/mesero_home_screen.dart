@@ -10,6 +10,7 @@ import '../../../models/mesa_model.dart';
 import '../../../models/plato_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/comanda_provider.dart';
+import '../../mantenimiento/widgets/selector_imagen.dart';
 import 'detalle_comanda_screen.dart';
 import 'nueva_comanda_screen.dart';
 
@@ -670,16 +671,18 @@ class _FilaCarta extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Container(
-            width: 46,
-            height: 46,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: AppColors.yellowSoft,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Text(_emojiDeCategoria(plato.categoria), style: const TextStyle(fontSize: 24)),
-          ),
+          plato.fotoUrl != null && plato.fotoUrl!.isNotEmpty
+              ? MiniaturaDeFoto(fotoUrl: plato.fotoUrl, lado: 46)
+              : Container(
+                  width: 46,
+                  height: 46,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.yellowSoft,
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  child: Text(_emojiDeCategoria(plato.categoria), style: const TextStyle(fontSize: 24)),
+                ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
