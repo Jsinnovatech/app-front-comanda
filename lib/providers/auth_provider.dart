@@ -54,8 +54,8 @@ class AuthProvider extends ChangeNotifier {
     );
   }
 
-  Future<void> loginPin({required int restauranteId, required String codigoAcceso}) async {
-    final sesion = await AuthService.loginPin(restauranteId: restauranteId, codigoAcceso: codigoAcceso);
+  Future<void> loginPin({required String codigoAcceso}) async {
+    final sesion = await AuthService.loginPin(codigoAcceso: codigoAcceso);
     await _persistirSesion(sesion);
     _sesion = sesion;
     notifyListeners();

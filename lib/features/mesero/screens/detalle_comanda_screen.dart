@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/estado_chip.dart';
 import '../../../models/comanda_model.dart';
 import '../../../providers/comanda_provider.dart';
 import 'nueva_comanda_screen.dart';
@@ -23,7 +24,7 @@ class _DetalleComandaScreenState extends State<DetalleComandaScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ComandaProvider>().cargarComanda(widget.comandaId);
+      if (mounted) context.read<ComandaProvider>().cargarComanda(widget.comandaId);
     });
   }
 
@@ -54,24 +55,61 @@ class _DetalleComandaScreenState extends State<DetalleComandaScreen> {
   Future<void> _cerrarCuenta(ComandaModel comanda) async {
     final metodoPago = await showModalBottomSheet<String>(
       context: context,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (_) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
+              child: Text('Cobrar mesa', style: Theme.of(context).textTheme.titleLarge),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: AppColors.yellowSoft,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Recibir',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12.5, color: AppColors.textDim),
+                    ),
+                    Text(
+                      'S/ ${comanda.total.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontFamily: AppTypography.mono,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 28,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 8, 20, 4),
               child: Text(
-                'Cobrar S/ ${comanda.total.toStringAsFixed(2)}',
-                style: Theme.of(context).textTheme.titleLarge,
+                'METODO DE PAGO',
+                style: TextStyle(color: AppColors.textDim, fontSize: 12, fontWeight: FontWeight.w800),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.payments, color: AppColors.pine),
+              leading: const Text('💵', style: TextStyle(fontSize: 20)),
               title: const Text('Efectivo'),
               onTap: () => Navigator.pop(context, 'efectivo'),
             ),
             ListTile(
-              leading: const Icon(Icons.credit_card, color: AppColors.pine),
+              leading: const Text('💳', style: TextStyle(fontSize: 20)),
               title: const Text('Tarjeta'),
               onTap: () => Navigator.pop(context, 'tarjeta'),
             ),
@@ -94,7 +132,7 @@ class _DetalleComandaScreenState extends State<DetalleComandaScreen> {
 
   void _mostrarError(String mensaje) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(mensaje), backgroundColor: AppColors.ember),
+      SnackBar(content: Text(mensaje), backgroundColor: AppColors.red),
     );
     context.read<ComandaProvider>().limpiarError();
   }
@@ -112,40 +150,51 @@ class _DetalleComandaScreenState extends State<DetalleComandaScreen> {
     }
 
     final abierta = comanda.estado == 'abierta';
+    final mesas = comanda.mesas.map((m) => m.numeroONombre).join(' + ');
 
     return Scaffold(
       appBar: AppBar(
         title: Text('Comanda #${comanda.id}'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(28),
-          child: Padding(
-            padding: const EdgeInsets.only(left: 16, bottom: 10),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Mesa ${comanda.mesas.map((m) => m.numeroONombre).join(' + ')}',
-                style: const TextStyle(color: AppColors.brassSoft, fontFamily: AppTypography.mono),
-              ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '🪑 Mesa $mesas',
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
             ),
           ),
-        ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () => provider.cargarComanda(widget.comandaId),
         child: comanda.items.isEmpty
             ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: const [
                   SizedBox(height: 80),
-                  Center(child: Text('Sin platos todavia', style: TextStyle(color: AppColors.textDim))),
+                  Center(child: Text('🧾', style: TextStyle(fontSize: 40))),
+                  SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      'Sin platos todavia',
+                      style: TextStyle(color: AppColors.textDim, fontWeight: FontWeight.w700),
+                    ),
+                  ),
                 ],
               )
-            : ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 8),
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: comanda.items.length,
-                separatorBuilder: (_, _) => const Divider(height: 1, color: AppColors.line),
                 itemBuilder: (_, i) {
                   final item = comanda.items[i];
-                  return _FilaItem(
+                  return _TarjetaItem(
                     item: item,
                     onMarcarServido: item.estado == 'listo' ? () => _marcarServido(item.id) : null,
                   );
@@ -154,53 +203,64 @@ class _DetalleComandaScreenState extends State<DetalleComandaScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             border: Border(top: BorderSide(color: AppColors.line)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  const Text('Total', style: TextStyle(color: AppColors.textDim)),
-                  const Spacer(),
-                  Text(
-                    'S/ ${comanda.total.toStringAsFixed(2)}',
-                    style: const TextStyle(
-                      fontFamily: AppTypography.mono,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.yellow,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Text('Total', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                    const Spacer(),
+                    Text(
+                      'S/ ${comanda.total.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontFamily: AppTypography.mono,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
               if (abierta)
                 Row(
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _agregarPlatos(comanda),
-                        icon: const Icon(Icons.add),
+                        icon: const Icon(Icons.add, size: 18),
                         label: const Text('Agregar plato'),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.black,
+                          foregroundColor: AppColors.yellow,
+                        ),
                         onPressed: () => _cerrarCuenta(comanda),
-                        icon: const Icon(Icons.receipt_long),
-                        label: const Text('Cerrar cuenta'),
+                        icon: const Icon(Icons.point_of_sale, size: 18),
+                        label: const Text('Cobrar'),
                       ),
                     ),
                   ],
                 )
               else
-                Text(
-                  'Cuenta ${comanda.estado}',
-                  style: const TextStyle(color: AppColors.cerrada, fontWeight: FontWeight.w600),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [EstadoChip(estado: comanda.estado)],
                 ),
             ],
           ),
@@ -210,88 +270,85 @@ class _DetalleComandaScreenState extends State<DetalleComandaScreen> {
   }
 }
 
-class _FilaItem extends StatelessWidget {
+class _TarjetaItem extends StatelessWidget {
   final ComandaItemModel item;
   final VoidCallback? onMarcarServido;
 
-  const _FilaItem({required this.item, this.onMarcarServido});
+  const _TarjetaItem({required this.item, this.onMarcarServido});
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: AppColors.paper,
-        child: Text(
-          'x${item.cantidad}',
-          style: const TextStyle(fontFamily: AppTypography.mono, fontSize: 12, color: AppColors.ink),
-        ),
+    final listo = item.estado == 'listo';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: listo ? AppColors.green : Colors.transparent, width: 2),
       ),
-      title: Text(item.platoNombre ?? 'Plato #${item.platoId}',
-          style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 6),
-        child: Row(
-          children: [
-            _PastillaEstado(estado: item.estado),
-            if (item.cocineroNombre != null) ...[
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  item.cocineroNombre!,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.textDim, fontSize: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.yellowSoft,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '${item.cantidad}x',
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.platoNombre ?? 'Plato #${item.platoId}',
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5),
                 ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    EstadoChip(estado: item.estado),
+                    if (item.cocineroNombre != null) ...[
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          item.cocineroNombre!,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(color: AppColors.textDim, fontSize: 11.5),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (onMarcarServido != null)
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.green,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                textStyle: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
               ),
-            ],
-          ],
-        ),
-      ),
-      trailing: onMarcarServido != null
-          ? FilledButton(
-              style: FilledButton.styleFrom(backgroundColor: AppColors.listo),
               onPressed: onMarcarServido,
               child: const Text('Servido'),
             )
-          : Text(
+          else
+            Text(
               'S/ ${((item.platoPrecio ?? 0) * item.cantidad).toStringAsFixed(2)}',
-              style: const TextStyle(fontFamily: AppTypography.mono),
+              style: const TextStyle(fontFamily: AppTypography.mono, fontWeight: FontWeight.w800),
             ),
-    );
-  }
-}
-
-class _PastillaEstado extends StatelessWidget {
-  final String estado;
-
-  const _PastillaEstado({required this.estado});
-
-  static const Map<String, Color> _colorPorEstado = {
-    'pendiente': AppColors.pendiente,
-    'en_preparacion': AppColors.enPreparacion,
-    'listo': AppColors.listo,
-    'servido': AppColors.servido,
-  };
-
-  static const Map<String, String> _etiquetaPorEstado = {
-    'pendiente': 'Pendiente',
-    'en_preparacion': 'En preparacion',
-    'listo': 'Listo',
-    'servido': 'Servido',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _colorPorEstado[estado] ?? AppColors.textDim;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color, width: 1),
-      ),
-      child: Text(
-        _etiquetaPorEstado[estado] ?? estado,
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700),
+        ],
       ),
     );
   }

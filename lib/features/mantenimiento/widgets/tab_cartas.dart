@@ -17,46 +17,115 @@ String _comoFechaDeApi(DateTime fecha) =>
 
 /// Una carta es lo que se ofrece en un periodo: agrupa platos que ya existen
 /// en el catalogo, con su portada y sus fechas de vigencia.
-class TabCartas extends StatelessWidget {
+class TabCartas extends StatefulWidget {
   const TabCartas({super.key});
+
+  @override
+  State<TabCartas> createState() => _TabCartasState();
+}
+
+class _TabCartasState extends State<TabCartas> {
+  String _tipoElegido = 'diaria';
 
   @override
   Widget build(BuildContext context) {
     final cartas = context.watch<CartaProvider>();
-    final lista = cartas.cartas;
+    final lista = cartas.cartas.where((c) => c.tipo == _tipoElegido).toList();
+    final esDiaria = _tipoElegido == 'diaria';
 
     return Column(
       children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                _SegmentoDeTipo(
+                  texto: 'Hoy',
+                  elegido: esDiaria,
+                  alElegir: () => setState(() => _tipoElegido = 'diaria'),
+                ),
+                _SegmentoDeTipo(
+                  texto: 'Semana',
+                  elegido: !esDiaria,
+                  alElegir: () => setState(() => _tipoElegido = 'semanal'),
+                ),
+              ],
+            ),
+          ),
+        ),
         EncabezadoDeSeccion(
-          titulo: 'Cartas',
+          titulo: esDiaria ? 'Carta del dia' : 'Carta semanal',
           detalle: '${lista.length} cartas · ${lista.where((c) => c.activa).length} vigentes',
-          textoBoton: 'Nueva carta',
+          textoBoton: '+ Carta',
           alAgregar: () => mostrarFormularioDeCarta(context),
         ),
         if (cartas.error != null) AvisoDeError(mensaje: cartas.error!, alCerrar: cartas.limpiarError),
         Expanded(
-          child: cartas.cargando && lista.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+          child: cartas.cargando && cartas.cartas.isEmpty
+              ? const Center(child: CircularProgressIndicator(color: AppColors.yellow))
               : RefreshIndicator(
+                  color: AppColors.yellow,
                   onRefresh: cartas.cargarCartas,
                   child: lista.isEmpty
                       ? ListView(
-                          children: const [
-                            SizedBox(height: 60),
+                          children: [
+                            const SizedBox(height: 50),
                             MensajeDeListaVacia(
                               icono: Icons.menu_book,
-                              mensaje: 'Aun no armas ninguna carta.\nElige platos del catalogo y define desde cuando rigen.',
+                              mensaje: esDiaria
+                                  ? 'Aun no armas una carta del dia.\nElige platos del catalogo y define desde cuando rige.'
+                                  : 'Aun no armas una carta semanal.\nSirve de plantilla base para toda la semana.',
                             ),
                           ],
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
                           itemCount: lista.length,
                           itemBuilder: (_, i) => _FichaDeCarta(carta: lista[i]),
                         ),
                 ),
         ),
       ],
+    );
+  }
+}
+
+class _SegmentoDeTipo extends StatelessWidget {
+  final String texto;
+  final bool elegido;
+  final VoidCallback alElegir;
+
+  const _SegmentoDeTipo({required this.texto, required this.elegido, required this.alElegir});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(9),
+        onTap: alElegir,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: elegido ? AppColors.yellow : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+          ),
+          child: Text(
+            texto,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w800,
+              color: elegido ? AppColors.black : AppColors.textDim,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -73,7 +142,7 @@ class _FichaDeCarta extends StatelessWidget {
       hijo: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MiniaturaDeFoto(fotoUrl: carta.fotoUrl, iconoVacio: Icons.menu_book, lado: 64),
+          MiniaturaDeFoto(fotoUrl: carta.fotoUrl, iconoVacio: Icons.menu_book, lado: 60),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -84,24 +153,27 @@ class _FichaDeCarta extends StatelessWidget {
                     Expanded(
                       child: Text(
                         carta.nombre,
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.black),
                       ),
                     ),
+                    const SizedBox(width: 6),
                     EtiquetaDeEstado(
                       texto: carta.activa ? 'Vigente' : 'Inactiva',
-                      color: carta.activa ? AppColors.sage : AppColors.textDim,
+                      color: carta.activa ? AppColors.green : AppColors.textDim,
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
-                  '${carta.tipo == 'semanal' ? 'Semanal' : 'Diaria'} · ${_comoDiaYMes(carta.fechaInicio)} al ${_comoDiaYMes(carta.fechaFin)}',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textDim),
+                  '${_comoDiaYMes(carta.fechaInicio)} al ${_comoDiaYMes(carta.fechaFin)}',
+                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDim),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '${carta.platos.length} platos incluidos',
-                  style: const TextStyle(fontSize: 12, color: AppColors.pine, fontWeight: FontWeight.w600),
+                  '${carta.platos.length} platos activos',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.black),
                 ),
                 if (carta.platos.isNotEmpty) ...[
                   const SizedBox(height: 2),
@@ -109,7 +181,7 @@ class _FichaDeCarta extends StatelessWidget {
                     carta.platos.map((p) => p.nombre).join(', '),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textDim),
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDim),
                   ),
                 ],
               ],
@@ -259,6 +331,7 @@ class _FormularioDeCartaState extends State<_FormularioDeCarta> {
       titulo: _esEdicion ? 'Editar carta' : 'Nueva carta',
       guardando: _guardando,
       alGuardar: _guardar,
+      textoGuardar: _esEdicion ? 'Guardar' : 'Crear carta',
       contenido: Form(
         key: _formulario,
         child: Column(
@@ -279,9 +352,9 @@ class _FormularioDeCartaState extends State<_FormularioDeCarta> {
             ),
             Row(
               children: [
-                _ChipDeTipo(texto: 'Diaria', elegido: _tipo == 'diaria', alElegir: () => _cambiarTipo('diaria')),
+                _BotonDeTipo(texto: 'Diaria', elegido: _tipo == 'diaria', alElegir: () => _cambiarTipo('diaria')),
                 const SizedBox(width: 8),
-                _ChipDeTipo(texto: 'Semanal', elegido: _tipo == 'semanal', alElegir: () => _cambiarTipo('semanal')),
+                _BotonDeTipo(texto: 'Semanal', elegido: _tipo == 'semanal', alElegir: () => _cambiarTipo('semanal')),
               ],
             ),
             const SizedBox(height: 12),
@@ -307,13 +380,18 @@ class _FormularioDeCartaState extends State<_FormularioDeCarta> {
             const SizedBox(height: 16),
             Row(
               children: [
-                const Text('Platos de esta carta', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                const Text(
+                  'Platos de esta carta',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.black),
+                ),
                 const Spacer(),
-                Text('${_platosElegidos.length} elegidos',
-                    style: const TextStyle(fontSize: 12, color: AppColors.textDim)),
+                Text(
+                  '${_platosElegidos.length} activos',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textDim),
+                ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             _ListaDePlatosSeleccionables(
               platos: platosDelCatalogo,
               elegidos: _platosElegidos,
@@ -328,8 +406,11 @@ class _FormularioDeCartaState extends State<_FormularioDeCarta> {
             ),
             if (_faltanPlatos)
               const Padding(
-                padding: EdgeInsets.only(top: 6),
-                child: Text('Elige al menos un plato', style: TextStyle(color: AppColors.ember, fontSize: 12)),
+                padding: EdgeInsets.only(top: 8),
+                child: Text(
+                  'Elige al menos un plato',
+                  style: TextStyle(color: AppColors.red, fontSize: 12, fontWeight: FontWeight.w700),
+                ),
               ),
           ],
         ),
@@ -338,6 +419,8 @@ class _FormularioDeCartaState extends State<_FormularioDeCarta> {
   }
 }
 
+/// Checklist del catalogo agrupado por categoria: marcar es lo unico que
+/// decide si el mozo vera ese plato en la carta.
 class _ListaDePlatosSeleccionables extends StatelessWidget {
   final List<PlatoModel> platos;
   final Set<int> elegidos;
@@ -355,64 +438,131 @@ class _ListaDePlatosSeleccionables extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.paper,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.line),
+          color: AppColors.gray,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: const Text(
           'No hay platos en el catalogo todavia. Crea platos en la pestaña Platos para poder armar una carta.',
-          style: TextStyle(fontSize: 12, color: AppColors.textDim),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDim),
         ),
       );
     }
 
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.line),
+    final categorias = platos.map(_categoriaDe).toSet().toList()..sort();
+
+    return SizedBox(
+      height: 230,
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          for (final categoria in categorias) ...[
+            TituloDeGrupo(texto: categoria),
+            for (final plato in platos.where((p) => _categoriaDe(p) == categoria))
+              _FilaDePlatoDeCarta(
+                plato: plato,
+                elegido: elegidos.contains(plato.id),
+                alTocar: () => alAlternar(plato.id),
+              ),
+            const SizedBox(height: 6),
+          ],
+        ],
       ),
-      clipBehavior: Clip.antiAlias,
-      child: ListView.builder(
-        itemCount: platos.length,
-        itemBuilder: (_, i) {
-          final plato = platos[i];
-          return CheckboxListTile(
-            dense: true,
-            value: elegidos.contains(plato.id),
-            onChanged: (_) => alAlternar(plato.id),
-            activeColor: AppColors.pine,
-            controlAffinity: ListTileControlAffinity.leading,
-            title: Text(plato.nombre, style: const TextStyle(fontSize: 13)),
-            subtitle: Text(
-              'S/ ${plato.precio.toStringAsFixed(2)}${plato.disponible ? '' : ' · agotado'}',
-              style: const TextStyle(fontSize: 11, color: AppColors.textDim),
+    );
+  }
+
+  String _categoriaDe(PlatoModel plato) {
+    final categoria = (plato.categoria ?? '').trim();
+    return categoria.isEmpty ? 'Sin categoria' : categoria;
+  }
+}
+
+class _FilaDePlatoDeCarta extends StatelessWidget {
+  final PlatoModel plato;
+  final bool elegido;
+  final VoidCallback alTocar;
+
+  const _FilaDePlatoDeCarta({required this.plato, required this.elegido, required this.alTocar});
+
+  @override
+  Widget build(BuildContext context) {
+    return Opacity(
+      opacity: elegido ? 1 : 0.6,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: alTocar,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: elegido ? AppColors.white : AppColors.gray,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: elegido ? AppColors.yellow : Colors.transparent, width: 2),
             ),
-          );
-        },
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${plato.nombre}${plato.disponible ? '' : ' · agotado'}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.black),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'S/ ${plato.precio.toStringAsFixed(2)}',
+                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.black),
+                ),
+                const SizedBox(width: 10),
+                Container(
+                  width: 22,
+                  height: 22,
+                  decoration: BoxDecoration(
+                    color: elegido ? AppColors.yellow : AppColors.line,
+                    shape: BoxShape.circle,
+                  ),
+                  child: elegido ? const Icon(Icons.check, size: 14, color: AppColors.black) : null,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _ChipDeTipo extends StatelessWidget {
+class _BotonDeTipo extends StatelessWidget {
   final String texto;
   final bool elegido;
   final VoidCallback alElegir;
 
-  const _ChipDeTipo({required this.texto, required this.elegido, required this.alElegir});
+  const _BotonDeTipo({required this.texto, required this.elegido, required this.alElegir});
 
   @override
   Widget build(BuildContext context) {
-    return ChoiceChip(
-      selected: elegido,
-      onSelected: (_) => alElegir(),
-      label: Text(texto),
-      labelStyle: TextStyle(color: elegido ? Colors.white : AppColors.ink, fontSize: 13),
-      selectedColor: AppColors.pine,
-      backgroundColor: AppColors.paper,
-      side: const BorderSide(color: AppColors.line),
-      showCheckmark: false,
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: alElegir,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: elegido ? AppColors.yellowSoft : AppColors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: elegido ? AppColors.yellow : AppColors.line,
+              width: elegido ? 3 : 2,
+            ),
+          ),
+          child: Text(
+            texto,
+            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.black),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -428,26 +578,28 @@ class _BotonDeFecha extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: alTocar,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.paper,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.line),
+          color: AppColors.gray,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(etiqueta, style: const TextStyle(fontSize: 11, color: AppColors.textDim)),
-            const SizedBox(height: 2),
+            Text(
+              etiqueta,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textDim),
+            ),
+            const SizedBox(height: 3),
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 14, color: AppColors.pine),
+                const Icon(Icons.calendar_today, size: 14, color: AppColors.black),
                 const SizedBox(width: 6),
                 Text(
                   '${_comoDiaYMes(fecha)} ${fecha.year}',
-                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink),
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.black),
                 ),
               ],
             ),

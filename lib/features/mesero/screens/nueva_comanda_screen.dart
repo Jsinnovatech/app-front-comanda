@@ -29,7 +29,7 @@ class _NuevaComandaScreenState extends State<NuevaComandaScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ComandaProvider>().cargarCartaDisponible();
+      if (mounted) context.read<ComandaProvider>().cargarCartaDisponible();
     });
   }
 
@@ -49,6 +49,30 @@ class _NuevaComandaScreenState extends State<NuevaComandaScreen> {
       0,
       (suma, plato) => suma + plato.precio * (_cantidadPorPlato[plato.id] ?? 0),
     );
+  }
+
+  /// Nada sale a cocina sin que el mesero vea antes lo que va a enviar:
+  /// la previsualizacion es el ultimo punto donde puede corregir.
+  Future<void> _previsualizarPedido(List<PlatoModel> carta) async {
+    final elegidos = carta.where((p) => _cantidadPorPlato.containsKey(p.id)).toList();
+    final confirmado = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _PrevisualizacionPedido(
+        platos: elegidos,
+        cantidades: Map.of(_cantidadPorPlato),
+        total: _calcularSubtotal(carta),
+        etiquetaMesas: widget.esAgregado
+            ? 'Comanda #${widget.comandaId}'
+            : 'Mesa ${widget.mesas.map((m) => m.numeroONombre).join(' + ')}',
+        etiquetaConfirmar: widget.esAgregado ? 'Confirmar y agregar' : 'Confirmar y enviar',
+      ),
+    );
+    if (confirmado == true && mounted) await _confirmarPedido();
   }
 
   Future<void> _confirmarPedido() async {
@@ -99,7 +123,7 @@ class _NuevaComandaScreenState extends State<NuevaComandaScreen> {
   /// vs comodin): su mensaje se muestra tal cual, sin traducirlo ni ocultarlo.
   void _mostrarError(String mensaje) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(mensaje), backgroundColor: AppColors.ember),
+      SnackBar(content: Text(mensaje), backgroundColor: AppColors.red),
     );
     context.read<ComandaProvider>().limpiarError();
   }
@@ -109,25 +133,27 @@ class _NuevaComandaScreenState extends State<NuevaComandaScreen> {
     final provider = context.watch<ComandaProvider>();
     final carta = provider.carta;
     final subtotal = _calcularSubtotal(carta);
-    final hayPlatos = _cantidadPorPlato.isNotEmpty;
+    final platosElegidos = _cantidadPorPlato.values.fold<int>(0, (suma, c) => suma + c);
     final nombresMesas = widget.mesas.map((m) => m.numeroONombre).join(' + ');
 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.esAgregado ? 'Agregar platos' : 'Nuevo pedido'),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(28),
-          child: Padding(
-            padding: const EdgeInsets.only(left: 16, bottom: 10),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                widget.esAgregado ? 'Comanda #${widget.comandaId}' : 'Mesa $nombresMesas',
-                style: const TextStyle(color: AppColors.brassSoft, fontFamily: AppTypography.mono),
-              ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              widget.esAgregado ? 'Comanda #${widget.comandaId}' : '🪑 Mesa $nombresMesas',
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
             ),
           ),
-        ),
+        ],
       ),
       body: carta.isEmpty && provider.error != null
           ? _AvisoErrorCarta(
@@ -139,52 +165,200 @@ class _NuevaComandaScreenState extends State<NuevaComandaScreen> {
             )
           : carta.isEmpty
               ? const Center(child: CircularProgressIndicator())
-              : ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: carta.length,
-              separatorBuilder: (_, _) => const Divider(height: 1, color: AppColors.line),
-              itemBuilder: (_, i) {
-                final plato = carta[i];
-                return _FilaPlato(
-                  plato: plato,
-                  cantidad: _cantidadPorPlato[plato.id] ?? 0,
-                  onSumar: () => _cambiarCantidad(plato, 1),
-                  onRestar: () => _cambiarCantidad(plato, -1),
-                );
-              },
-            ),
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: carta.length,
+                  itemBuilder: (_, i) {
+                    final plato = carta[i];
+                    return _TarjetaPlato(
+                      plato: plato,
+                      cantidad: _cantidadPorPlato[plato.id] ?? 0,
+                      onSumar: () => _cambiarCantidad(plato, 1),
+                      onRestar: () => _cambiarCantidad(plato, -1),
+                    );
+                  },
+                ),
       bottomNavigationBar: SafeArea(
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             border: Border(top: BorderSide(color: AppColors.line)),
           ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: AppColors.yellow,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
                   children: [
-                    const Text('Subtotal', style: TextStyle(color: AppColors.textDim, fontSize: 12)),
+                    Text(
+                      platosElegidos > 0 ? 'Total · $platosElegidos platos' : 'Total',
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                    ),
+                    const Spacer(),
                     Text(
                       'S/ ${subtotal.toStringAsFixed(2)}',
                       style: const TextStyle(
                         fontFamily: AppTypography.mono,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
                       ),
                     ),
                   ],
                 ),
               ),
-              ElevatedButton(
-                onPressed: hayPlatos && !provider.cargando ? _confirmarPedido : null,
-                child: Text(widget.esAgregado ? 'Agregar a la comanda' : 'Confirmar pedido'),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.black,
+                    foregroundColor: AppColors.yellow,
+                  ),
+                  onPressed: platosElegidos > 0 && !provider.cargando
+                      ? () => _previsualizarPedido(carta)
+                      : null,
+                  child: Text(widget.esAgregado ? 'Agregar a la comanda' : 'Confirmar pedido'),
+                ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Resumen final antes de mandar el pedido a cocina: solo lectura, con salida
+/// para volver a corregir cantidades.
+class _PrevisualizacionPedido extends StatelessWidget {
+  final List<PlatoModel> platos;
+  final Map<int, int> cantidades;
+  final double total;
+  final String etiquetaMesas;
+  final String etiquetaConfirmar;
+
+  const _PrevisualizacionPedido({
+    required this.platos,
+    required this.cantidades,
+    required this.total,
+    required this.etiquetaMesas,
+    required this.etiquetaConfirmar,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Revisa el pedido', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 2),
+            Text(
+              etiquetaMesas,
+              style: const TextStyle(color: AppColors.textDim, fontSize: 12.5, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 14),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+              child: ListView(
+                shrinkWrap: true,
+                children: platos.map((plato) {
+                  final cantidad = cantidades[plato.id] ?? 0;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 30,
+                          height: 30,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.yellowSoft,
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: Text(
+                            '${cantidad}x',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            plato.nombre,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+                          ),
+                        ),
+                        Text(
+                          'S/ ${(plato.precio * cantidad).toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontFamily: AppTypography.mono,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.yellow,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Text('Total', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                  const Spacer(),
+                  Text(
+                    'S/ ${total.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontFamily: AppTypography.mono,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Volver'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.black,
+                      foregroundColor: AppColors.yellow,
+                    ),
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text(etiquetaConfirmar),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -205,9 +379,9 @@ class _AvisoErrorCarta extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: AppColors.ember, size: 40),
+            const Icon(Icons.error_outline, color: AppColors.red, size: 40),
             const SizedBox(height: 12),
-            Text(mensaje, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.ember)),
+            Text(mensaje, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.red)),
             const SizedBox(height: 16),
             OutlinedButton.icon(
               onPressed: onReintentar,
@@ -221,13 +395,13 @@ class _AvisoErrorCarta extends StatelessWidget {
   }
 }
 
-class _FilaPlato extends StatelessWidget {
+class _TarjetaPlato extends StatelessWidget {
   final PlatoModel plato;
   final int cantidad;
   final VoidCallback onSumar;
   final VoidCallback onRestar;
 
-  const _FilaPlato({
+  const _TarjetaPlato({
     required this.plato,
     required this.cantidad,
     required this.onSumar,
@@ -236,46 +410,95 @@ class _FilaPlato extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(plato.nombre, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text(
-        plato.categoria ?? plato.descripcion ?? '',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(color: AppColors.textDim),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: cantidad > 0 ? AppColors.yellow : Colors.transparent, width: 2),
       ),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          Text(
-            'S/ ${plato.precio.toStringAsFixed(2)}',
-            style: const TextStyle(fontFamily: AppTypography.mono),
+          Container(
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.yellowSoft,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(_emojiDeCategoria(plato.categoria), style: const TextStyle(fontSize: 22)),
           ),
           const SizedBox(width: 12),
-          IconButton(
-            onPressed: cantidad > 0 ? onRestar : null,
-            icon: const Icon(Icons.remove_circle_outline),
-            color: AppColors.pine,
-          ),
-          SizedBox(
-            width: 24,
-            child: Text(
-              '$cantidad',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontFamily: AppTypography.mono,
-                fontWeight: FontWeight.bold,
-                color: cantidad > 0 ? AppColors.ink : AppColors.textDim,
-              ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(plato.nombre, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
+                const SizedBox(height: 2),
+                Text(
+                  'S/ ${plato.precio.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontFamily: AppTypography.mono,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
           ),
-          IconButton(
-            onPressed: onSumar,
-            icon: const Icon(Icons.add_circle),
-            color: AppColors.pine,
-          ),
+          if (cantidad > 0) ...[
+            _BotonCantidad(icono: Icons.remove, resaltado: false, onTap: onRestar),
+            SizedBox(
+              width: 30,
+              child: Text(
+                '$cantidad',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+              ),
+            ),
+          ],
+          _BotonCantidad(icono: Icons.add, resaltado: true, onTap: onSumar),
         ],
       ),
     );
   }
+}
+
+class _BotonCantidad extends StatelessWidget {
+  final IconData icono;
+  final bool resaltado;
+  final VoidCallback onTap;
+
+  const _BotonCantidad({required this.icono, required this.resaltado, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        width: 34,
+        height: 34,
+        decoration: BoxDecoration(
+          color: resaltado ? AppColors.yellow : AppColors.white,
+          shape: BoxShape.circle,
+          border: resaltado ? null : Border.all(color: AppColors.line, width: 2),
+        ),
+        child: Icon(icono, size: 18, color: AppColors.black),
+      ),
+    );
+  }
+}
+
+/// El backend no guarda un emoji por plato: se deriva de la categoria para
+/// mantener la carta tan visual como el prototipo aprobado.
+String _emojiDeCategoria(String? categoria) {
+  final texto = (categoria ?? '').toLowerCase();
+  if (texto.contains('bebida') || texto.contains('refresco')) return '🥤';
+  if (texto.contains('postre')) return '🍰';
+  if (texto.contains('entrada') || texto.contains('ensalada')) return '🥗';
+  if (texto.contains('sopa') || texto.contains('caldo')) return '🍲';
+  return '🍽️';
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../formato_dashboard.dart';
 
@@ -20,17 +19,13 @@ class GraficoVentasPorDia extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Text(
-              'Pico  ${FormatoDashboard.soles(maximo)}',
-              style: const TextStyle(
-                fontFamily: AppTypography.mono,
-                fontSize: 11,
-                color: AppColors.textDim,
-              ),
-            ),
-          ],
+        Text(
+          'Pico  ${FormatoDashboard.soles(maximo)}',
+          style: const TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textDim,
+          ),
         ),
         const SizedBox(height: 10),
         SizedBox(
@@ -68,8 +63,8 @@ class _ColumnaDia extends StatelessWidget {
           Text(
             venta.pedidos == 0 ? '-' : FormatoDashboard.entero(venta.pedidos),
             style: TextStyle(
-              fontFamily: AppTypography.mono,
-              fontSize: 10,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
               color: venta.pedidos == 0 ? AppColors.line : AppColors.textDim,
             ),
           ),
@@ -85,8 +80,8 @@ class _ColumnaDia extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: proporcion == 0
                           ? AppColors.line
-                          : (esHoy ? AppColors.brass : AppColors.pine),
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                          : (esHoy ? AppColors.black : AppColors.yellow),
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(6)),
                     ),
                   ),
                 );
@@ -97,14 +92,14 @@ class _ColumnaDia extends StatelessWidget {
           Text(
             FormatoDashboard.diaDeSemana(venta.dia),
             style: TextStyle(
-              fontSize: 10,
-              fontWeight: esHoy ? FontWeight.w700 : FontWeight.w400,
-              color: esHoy ? AppColors.pine : AppColors.textDim,
+              fontSize: 10.5,
+              fontWeight: esHoy ? FontWeight.w900 : FontWeight.w700,
+              color: esHoy ? AppColors.black : AppColors.textDim,
             ),
           ),
           Text(
             FormatoDashboard.diaYMes(venta.dia),
-            style: const TextStyle(fontFamily: AppTypography.mono, fontSize: 9, color: AppColors.textDim),
+            style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppColors.textDim),
           ),
         ],
       ),

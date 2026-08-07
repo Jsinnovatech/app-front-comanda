@@ -6,11 +6,11 @@ import '../models/personal_model.dart';
 /// cocinero/cajero), login admin (email+password), solicitar reset y
 /// resetear password.
 class AuthService {
-  static Future<SesionActual> loginPin({required int restauranteId, required String codigoAcceso}) async {
+  static Future<SesionActual> loginPin({required String codigoAcceso}) async {
     final data = await ApiClient.post(
       ApiConfig.loginPin,
       conAuth: false,
-      body: {'restaurante_id': restauranteId, 'codigo_acceso': codigoAcceso},
+      body: {'codigo_acceso': codigoAcceso},
     );
     return _sesionDesdeLogin(data);
   }

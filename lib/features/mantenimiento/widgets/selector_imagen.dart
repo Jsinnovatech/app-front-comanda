@@ -54,14 +54,14 @@ class SelectorDeFoto extends StatelessWidget {
         final elegida = await elegirImagenDeGaleria();
         if (elegida != null) alElegir(elegida);
       },
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
         height: alto,
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.paper,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.line),
+          color: AppColors.gray,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.line, width: 2),
         ),
         clipBehavior: Clip.antiAlias,
         child: _contenido(),
@@ -90,7 +90,10 @@ class SelectorDeFoto extends StatelessWidget {
       children: [
         const Icon(Icons.add_a_photo_outlined, color: AppColors.textDim),
         const SizedBox(height: 6),
-        Text(texto, style: const TextStyle(color: AppColors.textDim, fontSize: 12)),
+        Text(
+          texto,
+          style: const TextStyle(color: AppColors.textDim, fontSize: 12, fontWeight: FontWeight.w700),
+        ),
       ],
     );
   }
@@ -115,17 +118,17 @@ class MiniaturaDeFoto extends StatelessWidget {
       width: lado,
       height: lado,
       decoration: BoxDecoration(
-        color: AppColors.pine.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.yellowSoft,
+        borderRadius: BorderRadius.circular(12),
       ),
       clipBehavior: Clip.antiAlias,
       child: (fotoUrl != null && fotoUrl!.isNotEmpty)
           ? Image.network(
               urlAbsolutaDeFoto(fotoUrl!),
               fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => Icon(iconoVacio, color: AppColors.pine, size: lado * 0.45),
+              errorBuilder: (_, _, _) => Icon(iconoVacio, color: AppColors.black, size: lado * 0.45),
             )
-          : Icon(iconoVacio, color: AppColors.pine, size: lado * 0.45),
+          : Icon(iconoVacio, color: AppColors.black, size: lado * 0.45),
     );
   }
 }

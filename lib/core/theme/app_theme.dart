@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
-/// Tipografia: serif con caracter de carta impresa para titulos, sans
-/// del sistema para UI operativa, monoespaciada para datos de ticket
-/// (precios, horas, numeros de comanda) - referencia directa a la
-/// impresora termica de cocina, no decorativo.
+/// Segoe UI / system-ui, igual que el prototipo aprobado. Pesos 700-900
+/// para todo texto con jerarquia (headers, precios, botones) - nada de
+/// 400/500 regular en titulos, es parte de la identidad del diseno.
 class AppTypography {
-  static const String display = 'Georgia';
+  static const String display = 'Segoe UI';
   static const String mono = 'Courier New';
 }
 
@@ -14,39 +13,86 @@ class AppTheme {
   static ThemeData get light {
     return ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: AppColors.paper,
+      scaffoldBackgroundColor: AppColors.gray,
+      fontFamily: AppTypography.display,
       colorScheme: const ColorScheme.light(
-        primary: AppColors.pine,
-        onPrimary: Colors.white,
-        secondary: AppColors.brass,
-        surface: Colors.white,
-        error: AppColors.ember,
+        primary: AppColors.yellow,
+        onPrimary: AppColors.black,
+        secondary: AppColors.black,
+        onSecondary: AppColors.yellow,
+        surface: AppColors.white,
+        error: AppColors.red,
       ),
       textTheme: const TextTheme(
-        headlineMedium: TextStyle(fontFamily: AppTypography.display, fontWeight: FontWeight.w700),
-        headlineSmall: TextStyle(fontFamily: AppTypography.display, fontWeight: FontWeight.w700),
-        titleLarge: TextStyle(fontFamily: AppTypography.display, fontWeight: FontWeight.w600),
+        headlineMedium: TextStyle(fontWeight: FontWeight.w900),
+        headlineSmall: TextStyle(fontWeight: FontWeight.w900),
+        titleLarge: TextStyle(fontWeight: FontWeight.w800),
+        titleMedium: TextStyle(fontWeight: FontWeight.w800),
+        bodyLarge: TextStyle(fontWeight: FontWeight.w600),
+        bodyMedium: TextStyle(fontWeight: FontWeight.w600),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.pine,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.yellow,
+        foregroundColor: AppColors.black,
         centerTitle: false,
+        elevation: 0,
+        titleTextStyle: TextStyle(color: AppColors.black, fontWeight: FontWeight.w800, fontSize: 17),
+        iconTheme: IconThemeData(color: AppColors.black),
+      ),
+      tabBarTheme: const TabBarThemeData(
+        labelColor: AppColors.black,
+        unselectedLabelColor: AppColors.textDim,
+        labelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+        indicatorColor: AppColors.yellow,
+        indicatorSize: TabBarIndicatorSize.tab,
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppColors.white,
+        selectedItemColor: AppColors.yellow,
+        unselectedItemColor: AppColors.textDim,
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 10.5),
+        unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 10.5),
+        type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.pine,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.yellow,
+          foregroundColor: AppColors.black,
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.black,
+          side: const BorderSide(color: AppColors.line, width: 2),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          textStyle: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: AppColors.white,
+        elevation: 2,
+        shadowColor: Colors.black.withValues(alpha: 0.06),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.paper,
+        fillColor: AppColors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppColors.line),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.line, width: 2),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.line, width: 2),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.yellow, width: 2),
         ),
       ),
     );

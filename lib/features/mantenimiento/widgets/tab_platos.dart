@@ -6,50 +6,94 @@ import '../../../providers/mantenimiento_provider.dart';
 import 'piezas_mantenimiento.dart';
 import 'selector_imagen.dart';
 
+const _todos = 'Todos';
+const _sinCategoria = 'Sin categoria';
+
+String _categoriaDe(PlatoModel plato) {
+  final categoria = (plato.categoria ?? '').trim();
+  return categoria.isEmpty ? _sinCategoria : categoria;
+}
+
 /// Catalogo de platos: existe una sola vez cada plato, con su foto y precio.
 /// Lo que se ofrece hoy se arma en la pestaña Cartas eligiendo de aca.
-class TabPlatos extends StatelessWidget {
+class TabPlatos extends StatefulWidget {
   const TabPlatos({super.key});
+
+  @override
+  State<TabPlatos> createState() => _TabPlatosState();
+}
+
+class _TabPlatosState extends State<TabPlatos> {
+  String _categoriaElegida = _todos;
 
   @override
   Widget build(BuildContext context) {
     final mantenimiento = context.watch<MantenimientoProvider>();
     final platos = mantenimiento.platos;
 
+    final categorias = _categoriasDisponibles(platos);
+    // La categoria elegida puede desaparecer al borrar su ultimo plato.
+    final categoria = categorias.contains(_categoriaElegida) ? _categoriaElegida : _todos;
+    final lista = categoria == _todos ? platos : platos.where((p) => _categoriaDe(p) == categoria).toList();
+
     return Column(
       children: [
+        if (categorias.length > 1)
+          SizedBox(
+            height: 54,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+              itemCount: categorias.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 6),
+              itemBuilder: (_, i) => ChipDeFiltro(
+                texto: categorias[i],
+                elegido: categorias[i] == categoria,
+                alTocar: () => setState(() => _categoriaElegida = categorias[i]),
+              ),
+            ),
+          ),
         EncabezadoDeSeccion(
-          titulo: 'Platos',
-          detalle: '${platos.length} en el catalogo · ${platos.where((p) => p.disponible).length} disponibles',
-          textoBoton: 'Nuevo plato',
+          titulo: categoria == _todos ? 'Platos' : categoria,
+          detalle: '${lista.length} en el catalogo · ${lista.where((p) => p.disponible).length} disponibles',
+          textoBoton: '+ Plato',
           alAgregar: () => mostrarFormularioDePlato(context),
         ),
         if (mantenimiento.error != null)
           AvisoDeError(mensaje: mantenimiento.error!, alCerrar: mantenimiento.limpiarError),
         Expanded(
           child: mantenimiento.cargandoPlatos && platos.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator(color: AppColors.yellow))
               : RefreshIndicator(
+                  color: AppColors.yellow,
                   onRefresh: mantenimiento.cargarPlatos,
-                  child: platos.isEmpty
+                  child: lista.isEmpty
                       ? ListView(
-                          children: const [
-                            SizedBox(height: 60),
+                          children: [
+                            const SizedBox(height: 50),
                             MensajeDeListaVacia(
                               icono: Icons.restaurant_menu,
-                              mensaje: 'Todavia no hay platos.\nCrea el primero para poder armar cartas y tomar comandas.',
+                              mensaje: platos.isEmpty
+                                  ? 'Todavia no hay platos.\nCrea el primero para poder armar cartas y tomar comandas.'
+                                  : 'Aun no hay platos en $categoria.\nAgrega el primero.',
                             ),
                           ],
                         )
                       : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                          itemCount: platos.length,
-                          itemBuilder: (_, i) => _FichaDePlato(plato: platos[i]),
+                          padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
+                          itemCount: lista.length,
+                          itemBuilder: (_, i) => _FichaDePlato(plato: lista[i]),
                         ),
                 ),
         ),
       ],
     );
+  }
+
+  List<String> _categoriasDisponibles(List<PlatoModel> platos) {
+    final conNombre = platos.map(_categoriaDe).where((c) => c != _sinCategoria).toSet().toList()..sort();
+    final haySueltos = platos.any((p) => _categoriaDe(p) == _sinCategoria);
+    return [_todos, ...conNombre, if (haySueltos) _sinCategoria];
   }
 }
 
@@ -60,68 +104,47 @@ class _FichaDePlato extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final descripcion = (plato.descripcion ?? '').trim();
+
     return TarjetaDeFicha(
       alTocar: () => mostrarFormularioDePlato(context, plato: plato),
       hijo: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MiniaturaDeFoto(fotoUrl: plato.fotoUrl),
+          MiniaturaDeFoto(fotoUrl: plato.fotoUrl, lado: 46),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   plato.nombre,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.black),
                 ),
-                if (plato.descripcion != null && plato.descripcion!.isNotEmpty) ...[
+                if (descripcion.isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(
-                    plato.descripcion!,
-                    maxLines: 2,
+                    descripcion,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textDim),
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDim),
                   ),
                 ],
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    Text(
-                      'S/ ${plato.precio.toStringAsFixed(2)}',
-                      style: const TextStyle(
-                        fontFamily: 'Courier New',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.pine,
-                      ),
-                    ),
-                    if (plato.categoria != null && plato.categoria!.isNotEmpty) ...[
-                      const Text(' · ', style: TextStyle(color: AppColors.textDim)),
-                      Flexible(
-                        child: Text(
-                          plato.categoria!,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textDim),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
+                if (!plato.disponible) ...[
+                  const SizedBox(height: 6),
+                  const EtiquetaDeEstado(texto: 'Agotado', color: AppColors.red),
+                ],
               ],
             ),
           ),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              EtiquetaDeEstado(
-                texto: plato.disponible ? 'Disponible' : 'Agotado',
-                color: plato.disponible ? AppColors.sage : AppColors.ember,
-              ),
-              _MenuDePlato(plato: plato),
-            ],
+          Text(
+            'S/ ${plato.precio.toStringAsFixed(2)}',
+            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900, color: AppColors.black),
           ),
+          _MenuDePlato(plato: plato),
         ],
       ),
     );
@@ -137,6 +160,8 @@ class _MenuDePlato extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<String>(
       icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textDim),
+      color: AppColors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       onSelected: (opcion) async {
         final mantenimiento = context.read<MantenimientoProvider>();
         final mensajero = ScaffoldMessenger.of(context);
@@ -270,6 +295,7 @@ class _FormularioDePlatoState extends State<_FormularioDePlato> {
       titulo: _esEdicion ? 'Editar plato' : 'Nuevo plato',
       guardando: _guardando,
       alGuardar: _guardar,
+      textoGuardar: _esEdicion ? 'Guardar' : 'Crear plato',
       contenido: Form(
         key: _formulario,
         child: Column(
@@ -286,7 +312,7 @@ class _FormularioDePlatoState extends State<_FormularioDePlato> {
               etiqueta: 'Nombre del plato',
               validar: (v) => (v == null || v.trim().isEmpty) ? 'Ponle un nombre' : null,
             ),
-            CampoDeTexto(controlador: _descripcion, etiqueta: 'Descripcion (opcional)', lineas: 2),
+            CampoDeTexto(controlador: _descripcion, etiqueta: 'Descripcion corta (opcional)', lineas: 2),
             CampoDeTexto(
               controlador: _precio,
               etiqueta: 'Precio (S/)',
@@ -306,8 +332,12 @@ class _FormularioDePlatoState extends State<_FormularioDePlato> {
             SwitchListTile(
               value: _disponible,
               onChanged: (v) => setState(() => _disponible = v),
-              title: const Text('Disponible para pedir'),
-              activeThumbColor: AppColors.pine,
+              title: const Text(
+                'Disponible para pedir',
+                style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.black),
+              ),
+              activeThumbColor: AppColors.yellow,
+              activeTrackColor: AppColors.yellowSoft,
               contentPadding: EdgeInsets.zero,
             ),
           ],

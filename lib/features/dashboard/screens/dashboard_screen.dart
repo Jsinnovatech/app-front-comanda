@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../formato_dashboard.dart';
@@ -11,10 +10,11 @@ import '../widgets/panel_mesas.dart';
 import '../widgets/seccion_dashboard.dart';
 import '../widgets/tabla_ranking.dart';
 import '../widgets/tarjeta_metrica.dart';
+import '../widgets/ventas_por_medio_pago.dart';
 
 /// Analitica del restaurante para super_admin/admin. Todo lo que se ve aca
 /// sale de comandas, personal y mesas reales; lo que el backend todavia no
-/// guarda (metodo de pago, costos) se declara como pendiente, no se inventa.
+/// guarda (costos de insumos) se declara como pendiente, no se inventa.
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -64,6 +64,13 @@ class _VistaDashboard extends StatelessWidget {
               _AvisoError(mensaje: dashboard.error!, alReintentar: dashboard.cargar)
             else ...[
               _TarjetasDeMetricas(dashboard: dashboard),
+              const SizedBox(height: 16),
+              VentasPorMedioPago(
+                montosPorMedio: dashboard.ventasPorMedioPago,
+                periodo: dashboard.rango == RangoDashboard.hoy
+                    ? 'Venta de hoy (con IGV)'
+                    : 'Ventas ${dashboard.rango.etiqueta} (con IGV)',
+              ),
               const SizedBox(height: 16),
               SeccionDashboard(
                 titulo: 'Ventas por dia',
@@ -135,18 +142,17 @@ class _Encabezado extends StatelessWidget {
         Text(
           nombre.isEmpty ? 'Resumen del negocio' : 'Hola, $nombre',
           style: const TextStyle(
-            fontFamily: AppTypography.display,
             fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: AppColors.ink,
+            fontWeight: FontWeight.w900,
+            color: AppColors.black,
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 3),
         Text(
           ultimaActualizacion == null
               ? 'Cargando datos del restaurante...'
               : 'Actualizado ${FormatoDashboard.horaMinuto(ultimaActualizacion!)}',
-          style: const TextStyle(fontSize: 12, color: AppColors.textDim),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDim),
         ),
       ],
     );
@@ -172,16 +178,15 @@ class _SelectorDeRango extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: activo ? AppColors.pine : Colors.white,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: activo ? AppColors.pine : AppColors.line),
+                  color: activo ? AppColors.yellow : AppColors.white,
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   rango.etiqueta,
                   style: TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: activo ? Colors.white : AppColors.textDim,
+                    fontWeight: FontWeight.w800,
+                    color: activo ? AppColors.black : AppColors.textDim,
                   ),
                 ),
               ),
@@ -238,7 +243,7 @@ class _TarjetasDeMetricas extends StatelessWidget {
                   valor: FormatoDashboard.soles(dashboard.ticketPromedio),
                   detalle: 'por comanda cobrada',
                   icono: Icons.trending_up,
-                  acento: AppColors.sage,
+                  acento: AppColors.green,
                 ),
               ),
               const SizedBox(width: 12),
@@ -248,7 +253,7 @@ class _TarjetasDeMetricas extends StatelessWidget {
                   valor: FormatoDashboard.entero(dashboard.comandasAbiertas),
                   detalle: 'en curso ahora mismo',
                   icono: Icons.local_fire_department_outlined,
-                  acento: AppColors.ember,
+                  acento: AppColors.red,
                 ),
               ),
             ],
@@ -293,16 +298,19 @@ class _SeccionComprobantes extends StatelessWidget {
                               Text(
                                 FormatoDashboard.entero(conteo[tipo] ?? 0),
                                 style: const TextStyle(
-                                  fontFamily: AppTypography.mono,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.ink,
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.black,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 tipo.replaceAll('_', ' '),
-                                style: const TextStyle(fontSize: 11, color: AppColors.textDim),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textDim,
+                                ),
                               ),
                             ],
                           ),
@@ -322,34 +330,32 @@ class _NotaDeLimitaciones extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.paper,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.line),
+        color: AppColors.yellowSoft,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
-              const Icon(Icons.construction_outlined, size: 16, color: AppColors.textDim),
-              const SizedBox(width: 6),
+              Icon(Icons.construction_outlined, size: 16, color: AppColors.black),
+              SizedBox(width: 6),
               Text(
                 'Proximamente',
-                style: TextStyle(
-                  fontFamily: AppTypography.display,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.ink.withValues(alpha: 0.8),
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.black),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Distribucion por metodo de pago: el backend recibe el metodo al cerrar la comanda pero no lo guarda, '
-            'asi que no hay dato real que mostrar.\n\n'
-            'Costos y rentabilidad: el modelo de datos aun no registra costo de insumos por plato.',
-            style: TextStyle(fontSize: 12, height: 1.45, color: AppColors.textDim),
+          Text(
+            'Costos y rentabilidad: el modelo de datos aun no registra costo de insumos por plato, '
+            'asi que el margen real todavia no se puede calcular.',
+            style: TextStyle(
+              fontSize: 12,
+              height: 1.45,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black.withValues(alpha: 0.7),
+            ),
           ),
         ],
       ),
@@ -368,18 +374,17 @@ class _AvisoError extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.ember),
+        color: AppColors.redSoft,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         children: [
-          const Icon(Icons.error_outline, color: AppColors.ember),
+          const Icon(Icons.error_outline, color: AppColors.red),
           const SizedBox(height: 8),
           Text(
             mensaje,
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13, color: AppColors.ink),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.black),
           ),
           const SizedBox(height: 12),
           ElevatedButton(onPressed: alReintentar, child: const Text('Reintentar')),

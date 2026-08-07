@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 
-/// Tarjeta grande de una sola cifra. El numero va en monoespaciada porque en
-/// esta app todo dato duro se lee como impresion de ticket.
+/// Tarjeta de una sola cifra: icono en cuadro suave, valor grande en peso 900
+/// y etiqueta chica en gris. La variante `destacada` invierte a fondo negro
+/// con el numero en amarillo, igual que la tarjeta de venta del dia.
 class TarjetaMetrica extends StatelessWidget {
   final String titulo;
   final String valor;
@@ -19,68 +19,77 @@ class TarjetaMetrica extends StatelessWidget {
     required this.valor,
     this.detalle,
     required this.icono,
-    this.acento = AppColors.pine,
+    this.acento = AppColors.yellow,
     this.destacada = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final fondo = destacada ? AppColors.pine : Colors.white;
-    final colorTitulo = destacada ? AppColors.brassSoft : AppColors.textDim;
-    final colorValor = destacada ? Colors.white : AppColors.ink;
-    final colorDetalle = destacada ? AppColors.brassSoft : AppColors.textDim;
+    final fondo = destacada ? AppColors.black : AppColors.white;
+    final fondoIcono = destacada ? AppColors.white.withValues(alpha: 0.12) : AppColors.yellowSoft;
+    final colorIcono = destacada ? AppColors.yellow : acento;
+    final colorTitulo = destacada ? AppColors.white.withValues(alpha: 0.6) : AppColors.textDim;
+    final colorValor = destacada ? AppColors.yellow : AppColors.black;
+    final colorDetalle = destacada ? AppColors.white.withValues(alpha: 0.7) : AppColors.textDim;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: fondo,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: destacada ? AppColors.pineDark : AppColors.line),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Icon(icono, size: 16, color: destacada ? AppColors.brass : acento),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  titulo.toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10,
-                    letterSpacing: 0.8,
-                    fontWeight: FontWeight.w600,
-                    color: colorTitulo,
-                  ),
-                ),
-              ),
-            ],
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: fondoIcono,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icono, size: 18, color: colorIcono),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
               valor,
               style: TextStyle(
-                fontFamily: AppTypography.mono,
                 fontSize: 24,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w900,
                 color: colorValor,
               ),
             ),
           ),
+          const SizedBox(height: 4),
+          Text(
+            titulo,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: colorTitulo,
+            ),
+          ),
           if (detalle != null) ...[
-            const SizedBox(height: 4),
+            const SizedBox(height: 2),
             Text(
               detalle!,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11, color: colorDetalle),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: colorDetalle),
             ),
           ],
         ],

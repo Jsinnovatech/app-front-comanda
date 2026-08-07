@@ -81,6 +81,11 @@ class DashboardProvider extends ChangeNotifier {
   List<PlatoVendido> topPlatos = [];
   List<MeseroDestacado> rankingMeseros = [];
 
+  /// Cuanto se cobro con cada medio de pago en el rango elegido. Siempre trae
+  /// las cuatro claves (efectivo, tarjeta, yape_plin, otro), aunque esten en 0,
+  /// para que el desglose no cambie de forma entre periodos.
+  Map<String, double> ventasPorMedioPago = {};
+
   /// Conteo de comprobantes por tipo (boleta/factura/nota_venta). Se llena solo
   /// bajo demanda: el backend no tiene "listar comprobantes", hay que preguntar
   /// comanda por comanda, y eso es caro con historial grande.
@@ -173,6 +178,28 @@ class DashboardProvider extends ChangeNotifier {
     topPlatos = _calcularTopPlatos(delRango);
     rankingMeseros = _calcularRankingMeseros(delRango);
     ventasPorDia = _calcularVentasUltimosDias(7);
+    ventasPorMedioPago = _calcularVentasPorMedioPago(delRango);
+  }
+
+  /// El backend guarda el medio de pago recien al cerrar la comanda, asi que
+  /// solo suman las ya cobradas; las que vienen sin dato caen en "otro".
+  Map<String, double> _calcularVentasPorMedioPago(List<ComandaModel> comandas) {
+    final montos = {'efectivo': 0.0, 'tarjeta': 0.0, 'yape_plin': 0.0, 'otro': 0.0};
+    for (final comanda in comandas) {
+      final medio = _normalizarMedioPago(comanda.metodoPago);
+      montos[medio] = (montos[medio] ?? 0) + comanda.total;
+    }
+    return montos;
+  }
+
+  /// El medio llega como texto libre del cajero ("Yape / Plin", "yape_plin",
+  /// "YAPE"), asi que se reduce a las cuatro claves que muestra el desglose.
+  String _normalizarMedioPago(String? medio) {
+    final texto = (medio ?? '').toLowerCase();
+    if (texto.contains('efectivo')) return 'efectivo';
+    if (texto.contains('tarjeta')) return 'tarjeta';
+    if (texto.contains('yape') || texto.contains('plin')) return 'yape_plin';
+    return 'otro';
   }
 
   /// Una comanda cuenta como venta cuando ya se cobro: `pagada` o `cerrada`.

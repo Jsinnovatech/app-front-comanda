@@ -29,4 +29,6 @@ class ApiConfig {
 
   // Publico (sin login)
   static const String publicoRestaurantes = '$baseUrl/api/v1/public/restaurantes';
+
+  static String qrCarta(int restauranteId) => '$publicoRestaurantes/$restauranteId/qr-carta.png';
 }

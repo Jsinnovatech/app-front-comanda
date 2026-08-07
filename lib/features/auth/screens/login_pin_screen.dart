@@ -4,17 +4,16 @@ import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../providers/auth_provider.dart';
+import '../widgets/marca_comanda.dart';
 
 const _largoMinimoDelCodigo = 4;
 const _largoMaximoDelCodigo = 20;
 
 /// Pin pad del dispositivo compartido del local: mesero, cocinero y cajero
-/// entran aqui con su codigo personal. El `restaurante_id` ya viene resuelto
-/// desde el selector, asi esta pantalla solo pide digitos.
+/// entran aqui con su codigo personal. El PIN identifica a la persona y con
+/// ella a su restaurante, asi que esta pantalla solo pide digitos.
 class LoginPinScreen extends StatefulWidget {
-  final int restauranteId;
-
-  const LoginPinScreen({super.key, required this.restauranteId});
+  const LoginPinScreen({super.key});
 
   @override
   State<LoginPinScreen> createState() => _LoginPinScreenState();
@@ -51,10 +50,7 @@ class _LoginPinScreenState extends State<LoginPinScreen> {
     });
 
     try {
-      await context.read<AuthProvider>().loginPin(
-            restauranteId: widget.restauranteId,
-            codigoAcceso: _codigoIngresado,
-          );
+      await context.read<AuthProvider>().loginPin(codigoAcceso: _codigoIngresado);
       if (!mounted) return;
       // AuthProvider ya notifico y el portero de main.dart cambio la pantalla
       // de fondo; solo hay que soltar las rutas de login apiladas encima.
@@ -78,48 +74,39 @@ class _LoginPinScreenState extends State<LoginPinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.pine,
+      backgroundColor: AppColors.black,
       body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
             Align(
               alignment: Alignment.centerLeft,
               child: IconButton(
                 onPressed: _verificando ? null : () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.arrow_back, color: Colors.white70),
+                icon: const Icon(Icons.arrow_back, color: AppColors.white),
               ),
             ),
+            const MarcaComanda(tagline: 'Mesero · Cocina · Caja'),
             Expanded(
-              child: Center(
+              child: PanelClaro(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 360),
                     child: Column(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         const Text(
                           'Tu codigo de acceso',
-                          style: TextStyle(
-                            fontFamily: AppTypography.display,
-                            fontSize: 26,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
+                          style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.black),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'LOCAL ${widget.restauranteId}',
-                          style: const TextStyle(
-                            fontFamily: AppTypography.mono,
-                            fontSize: 12,
-                            letterSpacing: 2,
-                            color: AppColors.brassSoft,
-                          ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Marca tu PIN personal para entrar al turno',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
                         _CirculosDeProgreso(digitosIngresados: _codigoIngresado.length),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
                         SizedBox(
                           height: 34,
                           child: _verificando
@@ -128,7 +115,7 @@ class _LoginPinScreenState extends State<LoginPinScreen> {
                                   height: 22,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.2,
-                                    valueColor: AlwaysStoppedAnimation(AppColors.brassSoft),
+                                    valueColor: AlwaysStoppedAnimation(AppColors.yellow),
                                   ),
                                 )
                               : Text(
@@ -136,12 +123,12 @@ class _LoginPinScreenState extends State<LoginPinScreen> {
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.brassSoft,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.red,
                                   ),
                                 ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8),
                         _TecladoNumerico(
                           habilitado: !_verificando,
                           puedeEntrar: _codigoCompletable,
@@ -183,8 +170,8 @@ class _CirculosDeProgreso extends StatelessWidget {
           height: 16,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: relleno ? AppColors.brass : Colors.transparent,
-            border: Border.all(color: relleno ? AppColors.brass : Colors.white38, width: 1.6),
+            color: relleno ? AppColors.yellow : AppColors.white,
+            border: Border.all(color: relleno ? AppColors.yellow : AppColors.line, width: 2),
           ),
         );
       }),
@@ -286,21 +273,19 @@ class _TeclaDelPad extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final inactiva = alPresionar == null;
-    final fondo = destacada
-        ? (inactiva ? Colors.white10 : AppColors.brass)
-        : Colors.white.withValues(alpha: 0.08);
-    final contenido = destacada
-        ? (inactiva ? Colors.white30 : AppColors.pineDark)
-        : (inactiva ? Colors.white30 : Colors.white);
+    final fondo = destacada && !inactiva ? AppColors.yellow : AppColors.white;
+    final contenido = inactiva ? AppColors.textDim : AppColors.black;
 
     return Material(
       color: fondo,
+      elevation: inactiva ? 0 : 2,
+      shadowColor: Colors.black.withValues(alpha: 0.06),
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         onTap: alPresionar,
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
-          height: 64,
+          height: 58,
           child: Center(
             child: icono != null
                 ? Icon(icono, color: contenido, size: 24)
@@ -308,8 +293,8 @@ class _TeclaDelPad extends StatelessWidget {
                     etiqueta!,
                     style: TextStyle(
                       fontFamily: AppTypography.mono,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
                       color: contenido,
                     ),
                   ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 
 class FilaRanking {
   final String etiqueta;
@@ -17,7 +16,7 @@ class FilaRanking {
   });
 }
 
-/// Lista ordenada con barra de proporcion detras del nombre. La usan tanto el
+/// Lista ordenada con barra de proporcion debajo del nombre. La usan tanto el
 /// top de platos como el ranking de meseros: misma lectura, distinta fuente.
 class TablaRanking extends StatelessWidget {
   final List<FilaRanking> filas;
@@ -44,17 +43,21 @@ class TablaRanking extends StatelessWidget {
                       fila.etiqueta,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.ink),
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.black,
+                      ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 6),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
+                      borderRadius: BorderRadius.circular(6),
                       child: LinearProgressIndicator(
                         value: fila.proporcion.clamp(0.0, 1.0),
-                        minHeight: 6,
-                        backgroundColor: AppColors.paper,
+                        minHeight: 8,
+                        backgroundColor: AppColors.gray,
                         valueColor: AlwaysStoppedAnimation<Color>(
-                          indice == 0 ? AppColors.brass : AppColors.sage,
+                          indice == 0 ? AppColors.yellow : AppColors.green,
                         ),
                       ),
                     ),
@@ -68,17 +71,16 @@ class TablaRanking extends StatelessWidget {
                   Text(
                     fila.valor,
                     style: const TextStyle(
-                      fontFamily: AppTypography.mono,
                       fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.black,
                     ),
                   ),
                   Text(
                     fila.detalle,
                     style: const TextStyle(
-                      fontFamily: AppTypography.mono,
-                      fontSize: 10,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                       color: AppColors.textDim,
                     ),
                   ),
@@ -101,21 +103,19 @@ class _Medalla extends StatelessWidget {
   Widget build(BuildContext context) {
     final esPodio = posicion <= 3;
     return Container(
-      width: 26,
-      height: 26,
+      width: 28,
+      height: 28,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: esPodio ? AppColors.pine : AppColors.paper,
+        color: esPodio ? AppColors.yellow : AppColors.gray,
         shape: BoxShape.circle,
-        border: Border.all(color: esPodio ? AppColors.pine : AppColors.line),
       ),
       child: Text(
         '$posicion',
         style: TextStyle(
-          fontFamily: AppTypography.mono,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color: esPodio ? AppColors.brassSoft : AppColors.textDim,
+          fontSize: 12.5,
+          fontWeight: FontWeight.w900,
+          color: esPodio ? AppColors.black : AppColors.textDim,
         ),
       ),
     );

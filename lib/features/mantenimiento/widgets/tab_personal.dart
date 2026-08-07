@@ -22,6 +22,16 @@ const _iconosPorTipo = <String, IconData>{
   'super_admin': Icons.workspace_premium,
 };
 
+const _gruposPorTipo = <String, String>{
+  'cocinero': 'Cocineros',
+  'mesero': 'Meseros',
+  'cajero': 'Cajeros',
+  'admin': 'Administradores',
+  'super_admin': 'Dueño',
+};
+
+const _ordenDeGrupos = ['cocinero', 'mesero', 'cajero', 'admin', 'super_admin'];
+
 /// Quien entra con PIN y quien entra con email+password: los roles de piso
 /// comparten tablet y se identifican con un codigo corto; el administrador
 /// entra desde su propio equipo con credenciales completas.
@@ -42,35 +52,59 @@ class TabPersonal extends StatelessWidget {
         EncabezadoDeSeccion(
           titulo: 'Personal',
           detalle: '${personal.length} colaboradores · $activos activos',
-          textoBoton: 'Nuevo',
+          textoBoton: '+ Persona',
           alAgregar: () => mostrarFormularioDePersonal(context),
         ),
         if (mantenimiento.error != null)
           AvisoDeError(mensaje: mantenimiento.error!, alCerrar: mantenimiento.limpiarError),
         Expanded(
           child: mantenimiento.cargandoPersonal && personal.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? const Center(child: CircularProgressIndicator(color: AppColors.yellow))
               : RefreshIndicator(
+                  color: AppColors.yellow,
                   onRefresh: mantenimiento.cargarPersonal,
                   child: personal.isEmpty
                       ? ListView(
                           children: const [
-                            SizedBox(height: 60),
+                            SizedBox(height: 50),
                             MensajeDeListaVacia(
                               icono: Icons.badge_outlined,
                               mensaje: 'Aun no registras colaboradores.\nCrea meseros, cocineros y cajeros con su PIN.',
                             ),
                           ],
                         )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                          itemCount: personal.length,
-                          itemBuilder: (_, i) => _FichaDePersonal(persona: personal[i]),
+                      : ListView(
+                          padding: const EdgeInsets.fromLTRB(16, 2, 16, 24),
+                          children: _porRol(personal),
                         ),
                 ),
         ),
       ],
     );
+  }
+
+  /// Se listan por rol (como los ve el dueño al armar turnos), no en el orden
+  /// en que se crearon.
+  List<Widget> _porRol(List<PersonalModel> personal) {
+    final tiposPresentes = personal.map((p) => p.tipoColaboradorCodigo).toSet();
+    final tipos = [
+      ..._ordenDeGrupos.where(tiposPresentes.contains),
+      ...tiposPresentes.where((t) => !_ordenDeGrupos.contains(t)),
+    ];
+
+    final bloques = <Widget>[];
+    for (final tipo in tipos) {
+      final grupo = personal.where((p) => p.tipoColaboradorCodigo == tipo).toList();
+      bloques.add(Padding(
+        padding: const EdgeInsets.only(top: 6),
+        child: TituloDeGrupo(
+          texto: '${_gruposPorTipo[tipo] ?? tipo} (${grupo.length})',
+          icono: _iconosPorTipo[tipo] ?? Icons.person,
+        ),
+      ));
+      bloques.addAll(grupo.map((persona) => _FichaDePersonal(persona: persona)));
+    }
+    return bloques;
   }
 }
 
@@ -88,50 +122,64 @@ class _FichaDePersonal extends StatelessWidget {
       alTocar: esSuperAdmin ? null : () => mostrarFormularioDePersonal(context, persona: persona),
       hijo: Row(
         children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: AppColors.pine.withValues(alpha: 0.1),
-            child: Icon(
-              _iconosPorTipo[persona.tipoColaboradorCodigo] ?? Icons.person,
-              color: AppColors.pine,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   persona.nombre,
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.ink),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: AppColors.black),
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Text(
-                      _tiposDeColaborador[persona.tipoColaboradorCodigo] ?? persona.tipoColaboradorCodigo,
-                      style: const TextStyle(fontSize: 12, color: AppColors.textDim),
-                    ),
-                    const Text(' · ', style: TextStyle(color: AppColors.textDim)),
-                    Text(
-                      entraConPin(persona.tipoColaboradorCodigo) ? 'entra con PIN' : 'entra con correo',
-                      style: const TextStyle(fontSize: 12, color: AppColors.textDim),
-                    ),
-                  ],
+                const SizedBox(height: 2),
+                Text(
+                  entraConPin(persona.tipoColaboradorCodigo) ? 'Entra con PIN' : 'Entra con correo',
+                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.textDim),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 10),
           if (esSuperAdmin)
-            const EtiquetaDeEstado(texto: 'Dueño', color: AppColors.brass)
+            const EtiquetaDeEstado(texto: 'Dueño', color: AppColors.yellow)
           else
-            Switch(
-              value: persona.activo,
-              activeThumbColor: AppColors.pine,
-              onChanged: (_) => mantenimiento.cambiarActivoPersonal(persona),
-            ),
+            _InterruptorDeEstado(persona: persona, alAlternar: () => mantenimiento.cambiarActivoPersonal(persona)),
         ],
+      ),
+    );
+  }
+}
+
+/// El estado se ve como texto (asi lo lee el dueño de un vistazo) y ese mismo
+/// texto es el boton que lo da de baja: no hace falta abrir el formulario.
+class _InterruptorDeEstado extends StatelessWidget {
+  final PersonalModel persona;
+  final VoidCallback alAlternar;
+
+  const _InterruptorDeEstado({required this.persona, required this.alAlternar});
+
+  @override
+  Widget build(BuildContext context) {
+    final activo = persona.activo;
+
+    return Tooltip(
+      message: activo ? 'Tocar para dar de baja' : 'Tocar para reactivar',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: alAlternar,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Text(
+            activo ? '● Activo' : '○ Inactivo',
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w800,
+              color: activo ? AppColors.green : AppColors.textDim,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -261,6 +309,7 @@ class _FormularioDePersonalState extends State<_FormularioDePersonal> {
       titulo: _esEdicion ? 'Editar colaborador' : 'Nuevo colaborador',
       guardando: _guardando,
       alGuardar: _guardar,
+      textoGuardar: _esEdicion ? 'Guardar' : 'Registrar',
       contenido: Form(
         key: _formulario,
         child: Column(
@@ -273,10 +322,10 @@ class _FormularioDePersonalState extends State<_FormularioDePersonal> {
             ),
             if (_esEdicion)
               Padding(
-                padding: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.only(bottom: 10),
                 child: Text(
                   'Rol: ${_tiposDeColaborador[_tipo] ?? _tipo}',
-                  style: const TextStyle(fontSize: 13, color: AppColors.textDim),
+                  style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.textDim),
                 ),
               )
             else
@@ -315,8 +364,12 @@ class _FormularioDePersonalState extends State<_FormularioDePersonal> {
               SwitchListTile(
                 value: _activo,
                 onChanged: (v) => setState(() => _activo = v),
-                title: const Text('Puede iniciar sesion'),
-                activeThumbColor: AppColors.pine,
+                title: const Text(
+                  'Puede iniciar sesion',
+                  style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppColors.black),
+                ),
+                activeThumbColor: AppColors.yellow,
+                activeTrackColor: AppColors.yellowSoft,
                 contentPadding: EdgeInsets.zero,
               ),
           ],
@@ -326,6 +379,8 @@ class _FormularioDePersonalState extends State<_FormularioDePersonal> {
   }
 }
 
+/// Los roles se eligen como botones grandes y no como lista desplegable:
+/// es la decision que mas cambia el formulario, conviene verla entera.
 class _SelectorDeTipo extends StatelessWidget {
   final String tipoElegido;
   final ValueChanged<String> alElegir;
@@ -339,27 +394,45 @@ class _SelectorDeTipo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Rol', style: TextStyle(fontSize: 12, color: AppColors.textDim)),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
+          const Text(
+            'Rol',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textDim),
+          ),
+          const SizedBox(height: 8),
+          Row(
             children: _tiposDeColaborador.entries.map((tipo) {
               final elegido = tipo.key == tipoElegido;
-              return ChoiceChip(
-                selected: elegido,
-                onSelected: (_) => alElegir(tipo.key),
-                avatar: Icon(
-                  _iconosPorTipo[tipo.key],
-                  size: 16,
-                  color: elegido ? Colors.white : AppColors.pine,
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () => alElegir(tipo.key),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: elegido ? AppColors.yellowSoft : AppColors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: elegido ? AppColors.yellow : AppColors.line,
+                          width: elegido ? 3 : 2,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(_iconosPorTipo[tipo.key], size: 18, color: AppColors.black),
+                          const SizedBox(height: 4),
+                          Text(
+                            tipo.value,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.black),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
-                label: Text(tipo.value),
-                labelStyle: TextStyle(color: elegido ? Colors.white : AppColors.ink, fontSize: 13),
-                selectedColor: AppColors.pine,
-                backgroundColor: AppColors.paper,
-                side: const BorderSide(color: AppColors.line),
-                showCheckmark: false,
               );
             }).toList(),
           ),

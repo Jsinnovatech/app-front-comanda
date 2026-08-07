@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/carta_provider.dart';
 import '../../../providers/mantenimiento_provider.dart';
@@ -39,47 +38,73 @@ class _PanelDeMantenimiento extends StatelessWidget {
     return DefaultTabController(
       length: 4,
       child: Scaffold(
+        backgroundColor: AppColors.gray,
         appBar: AppBar(
+          backgroundColor: AppColors.yellow,
+          elevation: 0,
           titleSpacing: 16,
+          toolbarHeight: 62,
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
                 'Mantenimiento',
-                style: TextStyle(fontFamily: AppTypography.display, fontSize: 20, fontWeight: FontWeight.w700),
+                style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: AppColors.black),
               ),
               Text(
                 sesion != null ? 'Configuracion del local · ${sesion.nombre}' : 'Configuracion del local',
-                style: const TextStyle(fontSize: 12, color: AppColors.brassSoft),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.black.withValues(alpha: 0.55),
+                ),
               ),
             ],
           ),
-          toolbarHeight: 64,
           actions: [
-            IconButton(
-              tooltip: 'Recargar',
-              icon: const Icon(Icons.refresh),
-              onPressed: () {
-                context.read<MantenimientoProvider>().cargarTodo();
-                context.read<CartaProvider>().cargarCartas();
-              },
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: Material(
+                color: AppColors.white.withValues(alpha: 0.5),
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () {
+                    context.read<MantenimientoProvider>().cargarTodo();
+                    context.read<CartaProvider>().cargarCartas();
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(9),
+                    child: Icon(Icons.refresh, size: 20, color: AppColors.black),
+                  ),
+                ),
+              ),
             ),
           ],
-          bottom: const TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            indicatorColor: AppColors.brass,
-            indicatorWeight: 3,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            tabs: [
-              Tab(icon: Icon(Icons.restaurant_menu, size: 18), text: 'Platos', iconMargin: EdgeInsets.only(bottom: 2)),
-              Tab(icon: Icon(Icons.table_restaurant, size: 18), text: 'Mesas', iconMargin: EdgeInsets.only(bottom: 2)),
-              Tab(icon: Icon(Icons.badge_outlined, size: 18), text: 'Personal', iconMargin: EdgeInsets.only(bottom: 2)),
-              Tab(icon: Icon(Icons.menu_book, size: 18), text: 'Cartas', iconMargin: EdgeInsets.only(bottom: 2)),
-            ],
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(46),
+            child: ColoredBox(
+              color: AppColors.white,
+              child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicatorColor: AppColors.yellow,
+                indicatorWeight: 3,
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: AppColors.white,
+                labelColor: AppColors.black,
+                unselectedLabelColor: AppColors.textDim,
+                labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                unselectedLabelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                tabs: [
+                  Tab(height: 46, text: 'Platos'),
+                  Tab(height: 46, text: 'Mesas'),
+                  Tab(height: 46, text: 'Personal'),
+                  Tab(height: 46, text: 'Cartas'),
+                ],
+              ),
+            ),
           ),
         ),
         body: const TabBarView(

@@ -14,18 +14,18 @@ class AvisoDeError extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.ember.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.ember.withValues(alpha: 0.4)),
+        color: AppColors.redSoft,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.red.withValues(alpha: 0.3), width: 1.5),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: AppColors.ember, size: 20),
+          const Icon(Icons.error_outline, color: AppColors.red, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               mensaje,
-              style: const TextStyle(fontSize: 13, color: AppColors.ember, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 13, color: AppColors.red, fontWeight: FontWeight.w700),
             ),
           ),
         ],

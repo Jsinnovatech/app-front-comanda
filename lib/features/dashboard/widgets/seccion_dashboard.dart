@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 
-/// Bloque con titulo serif y cuerpo sobre papel: todas las secciones del
-/// dashboard usan este marco para que la pagina se lea como un solo documento.
+/// Tarjeta blanca con titulo bold: todas las secciones del dashboard usan este
+/// marco para que la pagina se lea como una sola pila de tarjetas.
 class SeccionDashboard extends StatelessWidget {
   final String titulo;
   final String? subtitulo;
@@ -25,9 +24,15 @@ class SeccionDashboard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.line),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,18 +47,21 @@ class SeccionDashboard extends StatelessWidget {
                     Text(
                       titulo,
                       style: const TextStyle(
-                        fontFamily: AppTypography.display,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.ink,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.black,
                       ),
                     ),
                     if (subtitulo != null)
                       Padding(
-                        padding: const EdgeInsets.only(top: 2),
+                        padding: const EdgeInsets.only(top: 3),
                         child: Text(
                           subtitulo!,
-                          style: const TextStyle(fontSize: 12, color: AppColors.textDim),
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDim,
+                          ),
                         ),
                       ),
                   ],
@@ -84,7 +92,7 @@ class SeccionVacia extends StatelessWidget {
         child: Text(
           mensaje,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 13, color: AppColors.textDim),
+          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.textDim),
         ),
       ),
     );

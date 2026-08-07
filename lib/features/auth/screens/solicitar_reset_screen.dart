@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../services/auth_service.dart';
 import '../widgets/aviso_de_error.dart';
 import 'resetear_password_screen.dart';
@@ -65,63 +64,79 @@ class _SolicitarResetScreenState extends State<SolicitarResetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Recuperar contrasena')),
+      appBar: AppBar(title: const Text('Recuperar contraseña')),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Te enviamos un codigo',
-                    style: TextStyle(
-                      fontFamily: AppTypography.display,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Escribe el correo de tu cuenta. Recibiras un codigo de 6 digitos para crear una contrasena nueva.',
-                    style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.textDim),
-                  ),
-                  const SizedBox(height: 28),
-                  TextField(
-                    controller: _emailControlador,
-                    keyboardType: TextInputType.emailAddress,
-                    autocorrect: false,
-                    enabled: !_enviando,
-                    decoration: const InputDecoration(
-                      labelText: 'Correo',
-                      prefixIcon: Icon(Icons.mail_outline, color: AppColors.textDim),
-                    ),
-                    onSubmitted: (_) => _enviarCodigo(),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 16),
-                    AvisoDeError(mensaje: _error!),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 2)),
                   ],
-                  const SizedBox(height: 28),
-                  ElevatedButton(
-                    onPressed: _enviando ? null : _enviarCodigo,
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 18)),
-                    child: _enviando
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.2,
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
-                            ),
-                          )
-                        : const Text('Enviar codigo', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  ),
-                ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: AppColors.yellowSoft,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.mark_email_read_outlined, color: AppColors.black, size: 26),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Te enviamos un codigo',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.black),
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Escribe el correo de tu cuenta. Recibiras un codigo de 6 digitos para crear una contraseña nueva.',
+                      style: TextStyle(fontSize: 12.5, height: 1.5, color: AppColors.textDim, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 22),
+                    TextField(
+                      controller: _emailControlador,
+                      keyboardType: TextInputType.emailAddress,
+                      autocorrect: false,
+                      enabled: !_enviando,
+                      decoration: const InputDecoration(
+                        labelText: 'Correo',
+                        prefixIcon: Icon(Icons.mail_outline, color: AppColors.textDim),
+                      ),
+                      onSubmitted: (_) => _enviarCodigo(),
+                    ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 16),
+                      AvisoDeError(mensaje: _error!),
+                    ],
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _enviando ? null : _enviarCodigo,
+                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 18)),
+                      child: _enviando
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.2,
+                                valueColor: AlwaysStoppedAnimation(AppColors.black),
+                              ),
+                            )
+                          : const Text('Enviar codigo'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

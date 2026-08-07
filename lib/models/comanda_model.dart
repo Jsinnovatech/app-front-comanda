@@ -67,6 +67,7 @@ class ComandaModel {
   final int meseroId;
   final String estado; // abierta | pagada | cerrada
   final int? calificacion;
+  final String? metodoPago;
   final DateTime fechaApertura;
   final DateTime? fechaCierre;
   final List<MesaResumenModel> mesas;
@@ -79,6 +80,7 @@ class ComandaModel {
     required this.meseroId,
     required this.estado,
     this.calificacion,
+    this.metodoPago,
     required this.fechaApertura,
     this.fechaCierre,
     required this.mesas,
@@ -93,6 +95,7 @@ class ComandaModel {
       meseroId: json['mesero_id'],
       estado: json['estado'],
       calificacion: json['calificacion'],
+      metodoPago: json['metodo_pago'],
       fechaApertura: DateTime.parse(json['fecha_apertura']),
       fechaCierre: json['fecha_cierre'] != null ? DateTime.parse(json['fecha_cierre']) : null,
       mesas: (json['mesas'] as List<dynamic>? ?? []).map((m) => MesaResumenModel.fromJson(m)).toList(),

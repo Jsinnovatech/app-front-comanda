@@ -41,10 +41,10 @@ class _ResetearPasswordScreenState extends State<ResetearPasswordScreen> {
       return 'El codigo tiene $_largoDelCodigo digitos';
     }
     if (_passwordControlador.text.length < _largoMinimoDePassword) {
-      return 'La contrasena necesita al menos $_largoMinimoDePassword caracteres';
+      return 'La contraseña necesita al menos $_largoMinimoDePassword caracteres';
     }
     if (_passwordControlador.text != _confirmacionControlador.text) {
-      return 'Las contrasenas no coinciden';
+      return 'Las contraseñas no coinciden';
     }
     return null;
   }
@@ -72,7 +72,7 @@ class _ResetearPasswordScreenState extends State<ResetearPasswordScreen> {
       final mensajero = ScaffoldMessenger.of(context);
       Navigator.of(context).popUntil((ruta) => ruta.isFirst);
       mensajero.showSnackBar(
-        SnackBar(content: Text(mensaje), backgroundColor: AppColors.sage),
+        SnackBar(content: Text(mensaje), backgroundColor: AppColors.green),
       );
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -92,100 +92,104 @@ class _ResetearPasswordScreenState extends State<ResetearPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Nueva contrasena')),
+      appBar: AppBar(title: const Text('Nueva contraseña')),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Revisa tu correo',
-                    style: TextStyle(
-                      fontFamily: AppTypography.display,
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.ink,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 2)),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Revisa tu correo',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.black),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Enviamos el codigo a ${widget.email}',
-                    style: const TextStyle(fontSize: 13, height: 1.5, color: AppColors.textDim),
-                  ),
-                  const SizedBox(height: 28),
-                  TextField(
-                    controller: _codigoControlador,
-                    keyboardType: TextInputType.number,
-                    enabled: !_guardando,
-                    maxLength: _largoDelCodigo,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    style: const TextStyle(
-                      fontFamily: AppTypography.mono,
-                      fontSize: 22,
-                      letterSpacing: 8,
-                      color: AppColors.ink,
+                    const SizedBox(height: 6),
+                    Text(
+                      'Enviamos el codigo a ${widget.email}',
+                      style: const TextStyle(fontSize: 12.5, height: 1.5, color: AppColors.textDim, fontWeight: FontWeight.w600),
                     ),
-                    decoration: const InputDecoration(
-                      labelText: 'Codigo de 6 digitos',
-                      counterText: '',
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordControlador,
-                    obscureText: _passwordOculta,
-                    enabled: !_guardando,
-                    decoration: InputDecoration(
-                      labelText: 'Contrasena nueva',
-                      prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textDim),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _passwordOculta ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                          color: AppColors.textDim,
-                        ),
-                        onPressed: () => setState(() => _passwordOculta = !_passwordOculta),
+                    const SizedBox(height: 22),
+                    TextField(
+                      controller: _codigoControlador,
+                      keyboardType: TextInputType.number,
+                      enabled: !_guardando,
+                      maxLength: _largoDelCodigo,
+                      textAlign: TextAlign.center,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      style: const TextStyle(
+                        fontFamily: AppTypography.mono,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 8,
+                        color: AppColors.black,
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Codigo de 6 digitos',
+                        counterText: '',
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _confirmacionControlador,
-                    obscureText: _passwordOculta,
-                    enabled: !_guardando,
-                    decoration: const InputDecoration(
-                      labelText: 'Repite la contrasena',
-                      prefixIcon: Icon(Icons.lock_outline, color: AppColors.textDim),
-                    ),
-                    onSubmitted: (_) => _guardarNuevaPassword(),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 16),
-                    AvisoDeError(mensaje: _error!),
-                  ],
-                  const SizedBox(height: 28),
-                  ElevatedButton(
-                    onPressed: _guardando ? null : _guardarNuevaPassword,
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 18)),
-                    child: _guardando
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.2,
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
-                            ),
-                          )
-                        : const Text(
-                            'Guardar contrasena',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: _passwordControlador,
+                      obscureText: _passwordOculta,
+                      enabled: !_guardando,
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña nueva',
+                        prefixIcon: const Icon(Icons.lock_outline, color: AppColors.textDim),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _passwordOculta ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            color: AppColors.textDim,
                           ),
-                  ),
-                ],
+                          onPressed: () => setState(() => _passwordOculta = !_passwordOculta),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: _confirmacionControlador,
+                      obscureText: _passwordOculta,
+                      enabled: !_guardando,
+                      decoration: const InputDecoration(
+                        labelText: 'Repite la contraseña',
+                        prefixIcon: Icon(Icons.lock_outline, color: AppColors.textDim),
+                      ),
+                      onSubmitted: (_) => _guardarNuevaPassword(),
+                    ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 16),
+                      AvisoDeError(mensaje: _error!),
+                    ],
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _guardando ? null : _guardarNuevaPassword,
+                      style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 18)),
+                      child: _guardando
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.2,
+                                valueColor: AlwaysStoppedAnimation(AppColors.black),
+                              ),
+                            )
+                          : const Text('Guardar contraseña'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
