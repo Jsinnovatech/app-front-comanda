@@ -113,6 +113,16 @@ class _DetalleComandaScreenState extends State<DetalleComandaScreen> {
               title: const Text('Tarjeta'),
               onTap: () => Navigator.pop(context, 'tarjeta'),
             ),
+            ListTile(
+              leading: const Text('📱', style: TextStyle(fontSize: 20)),
+              title: const Text('Yape / Plin'),
+              onTap: () => Navigator.pop(context, 'yape_plin'),
+            ),
+            ListTile(
+              leading: const Text('🧾', style: TextStyle(fontSize: 20)),
+              title: const Text('Otro'),
+              onTap: () => Navigator.pop(context, 'otro'),
+            ),
             const SizedBox(height: 8),
           ],
         ),
