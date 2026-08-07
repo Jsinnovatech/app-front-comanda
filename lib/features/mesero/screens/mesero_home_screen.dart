@@ -111,7 +111,7 @@ class _SalonMeseroState extends State<_SalonMesero> with SingleTickerProviderSta
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
               child: Row(
                 children: [
-                  const Text('🪑', style: TextStyle(fontSize: 20)),
+                  const Icon(Icons.table_restaurant, size: 20, color: AppColors.black),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -355,7 +355,7 @@ class _TarjetaMesa extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('🪑', style: TextStyle(fontSize: 24)),
+                  Icon(Icons.table_restaurant, size: 24, color: ocupada ? AppColors.black : AppColors.yellow),
                   const SizedBox(height: 5),
                   Text(
                     'Mesa ${mesa.numeroONombre}',

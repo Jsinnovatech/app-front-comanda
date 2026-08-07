@@ -397,7 +397,11 @@ class _TarjetaComanda extends StatelessWidget {
           child: Text.rich(
             TextSpan(
               children: [
-                TextSpan(text: '🪑 ${grupo.etiquetaMesa} '),
+                const WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: Icon(Icons.table_restaurant, size: 16, color: Colors.white),
+                ),
+                TextSpan(text: ' ${grupo.etiquetaMesa} '),
                 TextSpan(
                   text: '#${grupo.comandaId}',
                   style: const TextStyle(fontSize: 12, color: AppColors.textDim),

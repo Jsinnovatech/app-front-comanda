@@ -149,10 +149,22 @@ class _NuevaComandaScreenState extends State<NuevaComandaScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             alignment: Alignment.center,
-            child: Text(
-              widget.esAgregado ? 'Comanda #${widget.comandaId}' : '🪑 Mesa $nombresMesas',
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
-            ),
+            child: widget.esAgregado
+                ? Text(
+                    'Comanda #${widget.comandaId}',
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.table_restaurant, size: 14, color: AppColors.black),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Mesa $nombresMesas',
+                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),

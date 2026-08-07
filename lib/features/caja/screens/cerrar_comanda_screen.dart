@@ -81,9 +81,16 @@ class _CerrarComandaScreenState extends State<CerrarComandaScreen> {
                     color: AppColors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(
-                    '🪑 ${_nombreMesa(comanda)}',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.black),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.table_restaurant, size: 14, color: AppColors.black),
+                      const SizedBox(width: 4),
+                      Text(
+                        _nombreMesa(comanda),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.black),
+                      ),
+                    ],
                   ),
                 ),
               ),

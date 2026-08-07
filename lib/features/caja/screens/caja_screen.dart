@@ -165,7 +165,7 @@ class _TarjetaCuenta extends StatelessWidget {
                   color: AppColors.yellowSoft,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text('🪑', style: TextStyle(fontSize: 22)),
+                child: const Icon(Icons.table_restaurant, size: 22, color: AppColors.black),
               ),
               const SizedBox(width: 12),
               Expanded(

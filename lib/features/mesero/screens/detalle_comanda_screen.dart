@@ -164,9 +164,16 @@ class _DetalleComandaScreenState extends State<DetalleComandaScreen> {
               borderRadius: BorderRadius.circular(20),
             ),
             alignment: Alignment.center,
-            child: Text(
-              '🪑 Mesa $mesas',
-              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.table_restaurant, size: 14, color: AppColors.black),
+                const SizedBox(width: 4),
+                Text(
+                  'Mesa $mesas',
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12),
+                ),
+              ],
             ),
           ),
         ],
