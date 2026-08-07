@@ -13,13 +13,11 @@ const _etiquetasTipo = {
   'nota_venta': 'Nota de venta',
 };
 
-/// Los unicos metodos que el backend acepta hoy (`MetodoPago` es un Literal
-/// de "efectivo" | "tarjeta"). El prototipo dibuja tambien Yape/Plin y Otro,
-/// pero mandarlos seria un valor invalido: no se ofrecen hasta que el backend
-/// los admita.
 const _metodosDePago = {
   'efectivo': ('Efectivo', '💵'),
   'tarjeta': ('Tarjeta', '💳'),
+  'yape_plin': ('Yape / Plin', '📱'),
+  'otro': ('Otro', '🧾'),
 };
 
 String _etiquetaDe(String tipo) => _etiquetasTipo[tipo] ?? tipo;
@@ -749,7 +747,10 @@ class _BotonOpcion extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               texto,
-              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: AppColors.black),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.black),
             ),
           ],
         ),
