@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import '../core/config/api_config.dart';
@@ -48,6 +49,19 @@ class MantenimientoService {
   static Future<RestauranteModel> actualizarRestaurante(int id, Map<String, dynamic> cambios) async {
     final data = await ApiClient.put('${ApiConfig.restaurantes}/$id', body: cambios);
     return RestauranteModel.fromJson(data);
+  }
+
+  static Future<RestauranteModel> subirFotoRestaurante(int id, Uint8List bytes, String nombreArchivo) async {
+    final token = await ApiClient.obtenerToken();
+    final request = http.MultipartRequest('POST', Uri.parse('${ApiConfig.restaurantes}/$id/foto'));
+    if (token != null) request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(http.MultipartFile.fromBytes('foto', bytes, filename: nombreArchivo));
+    final streamed = await request.send();
+    final response = await http.Response.fromStream(streamed);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return RestauranteModel.fromJson(jsonDecode(response.body));
+    }
+    throw Exception('Error subiendo foto: ${response.statusCode}');
   }
 
   // ---------------- Personal ----------------

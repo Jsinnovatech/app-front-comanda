@@ -39,8 +39,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _persistirSesion(SesionActual sesion) async {
-    await ApiClient.guardarToken(sesion.accessToken);
+  Future<void> _guardarSesionEnDisco(SesionActual sesion) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(
       _sesionKey,
@@ -56,14 +55,20 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> loginPin({required String codigoAcceso}) async {
     final sesion = await AuthService.loginPin(codigoAcceso: codigoAcceso);
-    await _persistirSesion(sesion);
+    await ApiClient.guardarToken(sesion.accessToken);
+    await _guardarSesionEnDisco(sesion);
     _sesion = sesion;
     notifyListeners();
   }
 
-  Future<void> loginAdmin({required String email, required String password}) async {
+  /// [recordar] en false: el token igual se guarda (las llamadas de esta
+  /// sesion necesitan Authorization), pero la sesion nunca se escribe en
+  /// SharedPreferences - un refresh de pagina vuelve al login. Pensado para
+  /// dispositivos compartidos donde el admin no quiere dejar su cuenta abierta.
+  Future<void> loginAdmin({required String email, required String password, bool recordar = true}) async {
     final sesion = await AuthService.loginAdmin(email: email, password: password);
-    await _persistirSesion(sesion);
+    await ApiClient.guardarToken(sesion.accessToken);
+    if (recordar) await _guardarSesionEnDisco(sesion);
     _sesion = sesion;
     notifyListeners();
   }

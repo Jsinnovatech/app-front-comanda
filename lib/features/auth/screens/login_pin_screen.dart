@@ -74,75 +74,69 @@ class _LoginPinScreenState extends State<LoginPinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: AppColors.white,
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: IconButton(
-                onPressed: _verificando ? null : () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.arrow_back, color: AppColors.white),
-              ),
-            ),
-            const MarcaComanda(tagline: 'Mesero · Cocina · Caja'),
-            Expanded(
-              child: PanelClaro(
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 360),
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Tu codigo de acceso',
-                          style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.black),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Marca tu PIN personal para entrar al turno',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(height: 24),
-                        _CirculosDeProgreso(digitosIngresados: _codigoIngresado.length),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 34,
-                          child: _verificando
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                    valueColor: AlwaysStoppedAnimation(AppColors.yellow),
-                                  ),
-                                )
-                              : Text(
-                                  _error ?? '',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.red,
-                                  ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              EncabezadoLogin(onBack: _verificando ? null : () => Navigator.of(context).pop()),
+              const MarcaTexto(tagline: 'Mesero · Cocina · Caja'),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Tu codigo de acceso',
+                        style: TextStyle(fontSize: 19, fontWeight: FontWeight.w900, color: AppColors.black),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Marca tu PIN personal para entrar al turno',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 24),
+                      _CirculosDeProgreso(digitosIngresados: _codigoIngresado.length),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 34,
+                        child: _verificando
+                            ? const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  valueColor: AlwaysStoppedAnimation(AppColors.yellow),
                                 ),
-                        ),
-                        const SizedBox(height: 8),
-                        _TecladoNumerico(
-                          habilitado: !_verificando,
-                          puedeEntrar: _codigoCompletable,
-                          alPresionarDigito: _agregarDigito,
-                          alBorrar: _borrarUltimoDigito,
-                          alEntrar: _entrar,
-                        ),
-                      ],
-                    ),
+                              )
+                            : Text(
+                                _error ?? '',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.red,
+                                ),
+                              ),
+                      ),
+                      const SizedBox(height: 8),
+                      _TecladoNumerico(
+                        habilitado: !_verificando,
+                        puedeEntrar: _codigoCompletable,
+                        alPresionarDigito: _agregarDigito,
+                        alBorrar: _borrarUltimoDigito,
+                        alEntrar: _entrar,
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+              const PieDeLogin(),
+            ],
+          ),
         ),
       ),
     );

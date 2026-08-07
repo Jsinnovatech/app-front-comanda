@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/inactivity_wrapper.dart';
 import 'providers/auth_provider.dart';
 import 'models/personal_model.dart';
 
@@ -29,6 +30,7 @@ class ComandaApp extends StatelessWidget {
         theme: AppTheme.light,
         debugShowCheckedModeBanner: false,
         home: const _Portero(),
+        builder: (context, child) => InactivityWrapper(child: child!),
       ),
     );
   }

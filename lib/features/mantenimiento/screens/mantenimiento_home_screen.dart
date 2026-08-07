@@ -9,6 +9,7 @@ import '../widgets/tab_cartas.dart';
 import '../widgets/tab_mesas.dart';
 import '../widgets/tab_personal.dart';
 import '../widgets/tab_platos.dart';
+import '../widgets/tab_restaurante.dart';
 
 /// Panel de configuracion del restaurante: lo que el dueño arma una vez y
 /// luego solo ajusta. Los providers se crean aca y no en `main.dart` porque
@@ -19,9 +20,12 @@ class MantenimientoHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final restauranteId = context.read<AuthProvider>().sesion!.restauranteId;
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => MantenimientoProvider()..cargarTodo()),
+        ChangeNotifierProvider(
+          create: (_) => MantenimientoProvider()..cargarTodo(restauranteId: restauranteId),
+        ),
         ChangeNotifierProvider(create: (_) => CartaProvider()..cargarCartas()),
       ],
       child: const _PanelDeMantenimiento(),
@@ -35,9 +39,12 @@ class _PanelDeMantenimiento extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sesion = context.watch<AuthProvider>().sesion;
+    // El nombre/logo del local es una decision de dueño: solo super_admin
+    // puede escribir en /restaurantes/{id} (el backend tambien lo exige).
+    final esSuperAdmin = sesion?.tipoColaborador == 'super_admin';
 
     return DefaultTabController(
-      length: 4,
+      length: esSuperAdmin ? 5 : 4,
       child: Scaffold(
         backgroundColor: AppColors.gray,
         appBar: AppBar(
@@ -72,7 +79,7 @@ class _PanelDeMantenimiento extends StatelessWidget {
                 child: InkWell(
                   customBorder: const CircleBorder(),
                   onTap: () {
-                    context.read<MantenimientoProvider>().cargarTodo();
+                    context.read<MantenimientoProvider>().cargarTodo(restauranteId: sesion!.restauranteId);
                     context.read<CartaProvider>().cargarCartas();
                   },
                   child: const Padding(
@@ -84,8 +91,8 @@ class _PanelDeMantenimiento extends StatelessWidget {
             ),
             BotonSalir(onPressed: () => context.read<AuthProvider>().cerrarSesion()),
           ],
-          bottom: const PreferredSize(
-            preferredSize: Size.fromHeight(46),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(46),
             child: ColoredBox(
               color: AppColors.white,
               child: TabBar(
@@ -97,20 +104,27 @@ class _PanelDeMantenimiento extends StatelessWidget {
                 dividerColor: AppColors.white,
                 labelColor: AppColors.black,
                 unselectedLabelColor: AppColors.textDim,
-                labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
-                unselectedLabelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+                unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                 tabs: [
-                  Tab(height: 46, text: 'Platos'),
-                  Tab(height: 46, text: 'Mesas'),
-                  Tab(height: 46, text: 'Personal'),
-                  Tab(height: 46, text: 'Cartas'),
+                  const Tab(height: 46, text: 'Platos'),
+                  const Tab(height: 46, text: 'Mesas'),
+                  const Tab(height: 46, text: 'Personal'),
+                  const Tab(height: 46, text: 'Cartas'),
+                  if (esSuperAdmin) const Tab(height: 46, text: 'Restaurante'),
                 ],
               ),
             ),
           ),
         ),
-        body: const TabBarView(
-          children: [TabPlatos(), TabMesas(), TabPersonal(), TabCartas()],
+        body: TabBarView(
+          children: [
+            const TabPlatos(),
+            const TabMesas(),
+            const TabPersonal(),
+            const TabCartas(),
+            if (esSuperAdmin) const TabRestaurante(),
+          ],
         ),
       ),
     );

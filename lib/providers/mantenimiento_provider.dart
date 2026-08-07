@@ -3,6 +3,7 @@ import '../core/network/api_client.dart';
 import '../models/mesa_model.dart';
 import '../models/personal_model.dart';
 import '../models/plato_model.dart';
+import '../models/restaurante_model.dart';
 import '../services/mantenimiento_service.dart';
 
 /// Estado del modulo Mantenimiento: platos, mesas y personal viven juntos
@@ -14,19 +15,23 @@ class MantenimientoProvider extends ChangeNotifier {
   List<PlatoModel> _platos = [];
   List<MesaModel> _mesas = [];
   List<PersonalModel> _personal = [];
+  RestauranteModel? _restaurante;
 
   bool _cargandoPlatos = false;
   bool _cargandoMesas = false;
   bool _cargandoPersonal = false;
+  bool _cargandoRestaurante = false;
   String? _error;
 
   List<PlatoModel> get platos => _platos;
   List<MesaModel> get mesas => _mesas;
   List<PersonalModel> get personal => _personal;
+  RestauranteModel? get restaurante => _restaurante;
 
   bool get cargandoPlatos => _cargandoPlatos;
   bool get cargandoMesas => _cargandoMesas;
   bool get cargandoPersonal => _cargandoPersonal;
+  bool get cargandoRestaurante => _cargandoRestaurante;
   String? get error => _error;
 
   void limpiarError() {
@@ -34,8 +39,44 @@ class MantenimientoProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> cargarTodo() async {
-    await Future.wait([cargarPlatos(), cargarMesas(), cargarPersonal()]);
+  Future<void> cargarTodo({required int restauranteId}) async {
+    await Future.wait([cargarPlatos(), cargarMesas(), cargarPersonal(), cargarRestaurante(restauranteId)]);
+  }
+
+  // ---------------- Restaurante ----------------
+
+  Future<void> cargarRestaurante(int restauranteId) async {
+    _cargandoRestaurante = true;
+    _error = null;
+    notifyListeners();
+    try {
+      _restaurante = await MantenimientoService.obtenerRestaurante(restauranteId);
+    } on ApiException catch (e) {
+      _error = e.message;
+    } finally {
+      _cargandoRestaurante = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> actualizarNombreRestaurante(int restauranteId, String nombre) async {
+    final actualizado = await _ejecutar(
+      () => MantenimientoService.actualizarRestaurante(restauranteId, {'nombre': nombre}),
+    );
+    if (actualizado == null) return false;
+    _restaurante = actualizado;
+    notifyListeners();
+    return true;
+  }
+
+  Future<bool> subirFotoRestaurante(int restauranteId, Uint8List bytes, String nombreArchivo) async {
+    final actualizado = await _ejecutar(
+      () => MantenimientoService.subirFotoRestaurante(restauranteId, bytes, nombreArchivo),
+    );
+    if (actualizado == null) return false;
+    _restaurante = actualizado;
+    notifyListeners();
+    return true;
   }
 
   // ---------------- Platos ----------------

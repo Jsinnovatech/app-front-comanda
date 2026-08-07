@@ -18,54 +18,56 @@ class LoginSelectorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: AppColors.white,
       body: SafeArea(
         bottom: false,
-        child: Column(
-          children: [
-            const SizedBox(height: 24),
-            const MarcaComanda(),
-            Expanded(
-              child: PanelClaro(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text(
-                        'Ingresa con tu perfil',
-                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.black),
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Elige como vas a entrar al sistema',
-                        style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 16),
-                      _OpcionDeEntrada(
-                        icono: '🧾',
-                        titulo: 'Personal del local',
-                        descripcion: 'Mesero, cocina y caja — entra con tu PIN',
-                        alTocar: () => _abrir(context, const LoginPinScreen()),
-                      ),
-                      const SizedBox(height: 10),
-                      _OpcionDeEntrada(
-                        icono: '📊',
-                        titulo: 'Admin / Dueño',
-                        descripcion: 'Ventas, platos, personal y carta',
-                        alTocar: () => _abrir(context, const LoginAdminScreen()),
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'El personal del local entra con su PIN. El administrador entra con su correo y contraseña.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, height: 1.5, color: AppColors.textDim, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const EncabezadoLogin(),
+              const MarcaTexto(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Ingresa con tu perfil',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: AppColors.black),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Elige como vas a entrar al sistema',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, color: AppColors.textDim, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 18),
+                    _OpcionDeEntrada(
+                      icono: '🧾',
+                      titulo: 'Personal del local',
+                      descripcion: 'Mesero, cocina y caja — entra con tu PIN',
+                      alTocar: () => _abrir(context, const LoginPinScreen()),
+                    ),
+                    const SizedBox(height: 10),
+                    _OpcionDeEntrada(
+                      icono: '📊',
+                      titulo: 'Admin / Dueño',
+                      descripcion: 'Ventas, platos, personal y carta',
+                      alTocar: () => _abrir(context, const LoginAdminScreen()),
+                    ),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'El personal del local entra con su PIN. El administrador entra con su correo y contraseña.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 12, height: 1.5, color: AppColors.textDim, fontWeight: FontWeight.w600),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ],
+              const PieDeLogin(),
+            ],
+          ),
         ),
       ),
     );
