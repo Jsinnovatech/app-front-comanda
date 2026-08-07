@@ -2,7 +2,7 @@
 /// ni prueba variantes - el bug real que encontramos en Casta de Gallos
 /// (admin_service.dart probaba 5 URLs distintas por endpoint) no se repite aqui.
 class ApiConfig {
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'https://app-back-comanda-production.up.railway.app';
 
   // Auth
   static const String loginPin = '$baseUrl/auth/login';
