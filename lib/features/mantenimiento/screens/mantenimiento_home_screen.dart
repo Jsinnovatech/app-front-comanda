@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/boton_salir.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/carta_provider.dart';
 import '../../../providers/mantenimiento_provider.dart';
@@ -81,6 +82,7 @@ class _PanelDeMantenimiento extends StatelessWidget {
                 ),
               ),
             ),
+            BotonSalir(onPressed: () => context.read<AuthProvider>().cerrarSesion()),
           ],
           bottom: const PreferredSize(
             preferredSize: Size.fromHeight(46),

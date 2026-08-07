@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/boton_salir.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../formato_dashboard.dart';
@@ -44,6 +45,7 @@ class _VistaDashboard extends StatelessWidget {
             onPressed: dashboard.cargando ? null : () => dashboard.cargar(),
             icon: const Icon(Icons.refresh),
           ),
+          BotonSalir(onPressed: () => context.read<AuthProvider>().cerrarSesion()),
         ],
       ),
       body: RefreshIndicator(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/boton_salir.dart';
 import '../../../models/comanda_model.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/caja_provider.dart';
@@ -58,11 +59,7 @@ class _CuentasAbiertas extends StatelessWidget {
                 ),
               ),
             ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar sesion',
-            onPressed: () => context.read<AuthProvider>().cerrarSesion(),
-          ),
+          BotonSalir(onPressed: () => context.read<AuthProvider>().cerrarSesion()),
         ],
       ),
       body: RefreshIndicator(

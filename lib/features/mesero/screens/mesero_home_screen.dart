@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../core/config/api_config.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/boton_salir.dart';
 import '../../../core/widgets/estado_chip.dart';
 import '../../../models/comanda_model.dart';
 import '../../../models/mesa_model.dart';
@@ -162,11 +163,7 @@ class _SalonMeseroState extends State<_SalonMesero> with SingleTickerProviderSta
       appBar: AppBar(
         title: Text(sesion == null ? 'Mesero' : 'Mesero · ${sesion.nombre}'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar sesion',
-            onPressed: () => context.read<AuthProvider>().cerrarSesion(),
-          ),
+          BotonSalir(onPressed: () => context.read<AuthProvider>().cerrarSesion()),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(46),
