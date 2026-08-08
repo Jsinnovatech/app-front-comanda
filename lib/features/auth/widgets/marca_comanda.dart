@@ -26,11 +26,11 @@ class EncabezadoLogin extends StatelessWidget {
             color: AppColors.yellow,
             alignment: Alignment.center,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(26),
               child: Image.asset(
-                'assets/icons/logicono.webp',
-                width: 88,
-                height: 78,
+                'assets/icons/icono.webp',
+                width: 118,
+                height: 118,
                 fit: BoxFit.cover,
               ),
             ),
@@ -52,9 +52,9 @@ class EncabezadoLogin extends StatelessWidget {
   }
 }
 
-/// Wordmark "Comanda / RESTAURANTE" sobre fondo claro, con la tagline
-/// debajo. Va inmediatamente bajo [EncabezadoLogin] en las 3 pantallas
-/// de login.
+/// Tagline sobre fondo claro, bajo [EncabezadoLogin] en las 3 pantallas de
+/// login. El wordmark "Comanda / RESTAURANTE" ya viene dentro del icono, asi
+/// que aqui solo queda la linea que aporta informacion nueva.
 class MarcaTexto extends StatelessWidget {
   final String tagline;
 
@@ -64,28 +64,10 @@ class MarcaTexto extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 6),
-      child: Column(
-        children: [
-          const Text(
-            'Comanda',
-            style: TextStyle(color: AppColors.black, fontSize: 30, fontWeight: FontWeight.w900, letterSpacing: -1),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-            decoration: BoxDecoration(color: AppColors.yellow, borderRadius: BorderRadius.circular(20)),
-            child: const Text(
-              'RESTAURANTE',
-              style: TextStyle(color: AppColors.black, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 3),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            tagline,
-            textAlign: TextAlign.center,
-            style: const TextStyle(color: AppColors.textDim, fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-        ],
+      child: Text(
+        tagline,
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: AppColors.textDim, fontSize: 13, fontWeight: FontWeight.w600),
       ),
     );
   }

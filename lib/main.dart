@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'core/navigation_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/inactivity_wrapper.dart';
 import 'providers/auth_provider.dart';
@@ -30,6 +31,7 @@ class ComandaApp extends StatelessWidget {
         title: 'Comanda',
         theme: AppTheme.light,
         debugShowCheckedModeBanner: false,
+        navigatorKey: navigatorKey,
         home: const _Portero(),
         builder: (context, child) => InactivityWrapper(child: child!),
       ),
@@ -114,25 +116,15 @@ class _AdminShellState extends State<_AdminShell> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.asset('assets/icons/logicono.webp', width: 30, height: 30, fit: BoxFit.cover),
+                    child: Image.asset('assets/icons/icono.webp', width: 34, height: 34, fit: BoxFit.cover),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Comanda',
-                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: -0.3),
-                        ),
-                        Text(
-                          'Operando: ${auth.sesion?.nombre ?? ""}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                    child: Text(
+                      'Operando: ${auth.sesion?.nombre ?? ""}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: -0.3),
                     ),
                   ),
                 ],

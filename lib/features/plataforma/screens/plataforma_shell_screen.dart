@@ -50,21 +50,24 @@ class _PanelDePlataformaState extends State<_PanelDePlataforma> {
           padding: const EdgeInsets.only(left: 12),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(9),
-            child: Image.asset('assets/icons/logicono.webp', width: 34, height: 34, fit: BoxFit.cover),
+            child: Image.asset('assets/icons/icono.webp', width: 36, height: 36, fit: BoxFit.cover),
           ),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Comanda',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, letterSpacing: -0.3),
-            ),
             Text(
-              sesion != null ? '${_titulos[_tab]} · ${sesion.nombre}' : _titulos[_tab],
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.yellow.withValues(alpha: 0.7)),
+              _titulos[_tab],
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 21, letterSpacing: -0.3),
             ),
+            if (sesion != null)
+              Text(
+                sesion.nombre,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.yellow.withValues(alpha: 0.7)),
+              ),
           ],
         ),
         actions: [BotonSalir(onPressed: () => context.read<AuthProvider>().cerrarSesion())],

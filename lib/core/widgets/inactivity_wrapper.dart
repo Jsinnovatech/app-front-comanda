@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../navigation_service.dart';
 import 'session_warning_dialog.dart';
 
 /// Envuelve toda la app: detecta inactividad (sin toques ni clics) y, tras
@@ -21,7 +22,7 @@ class InactivityWrapper extends StatefulWidget {
 }
 
 class _InactivityWrapperState extends State<InactivityWrapper> with WidgetsBindingObserver {
-  static const Duration _idleTimeout = Duration(minutes: 10);
+  static const Duration _idleTimeout = Duration(minutes: 5);
 
   Timer? _idleTimer;
   bool _dialogShowing = false;
@@ -41,6 +42,15 @@ class _InactivityWrapperState extends State<InactivityWrapper> with WidgetsBindi
     super.dispose();
   }
 
+  /// Solo imprime en debug: `assert` no se ejecuta en release, asi que estos
+  /// rastros no llegan a produccion.
+  void _rastro(String mensaje) {
+    assert(() {
+      debugPrint('⏱️ Inactividad: $mensaje');
+      return true;
+    }());
+  }
+
   void _resetIdleTimer() {
     if (_dialogShowing) return;
     _idleTimer?.cancel();
@@ -48,26 +58,46 @@ class _InactivityWrapperState extends State<InactivityWrapper> with WidgetsBindi
   }
 
   Future<void> _mostrarAvisoDeCierre() async {
-    if (!mounted) return;
-    final auth = context.read<AuthProvider>();
-    if (!auth.autenticado) return;
+    // El contexto propio de este widget vive POR ENCIMA del Navigator (esta
+    // montado en `MaterialApp.builder`), asi que no sirve para `showDialog`.
+    // El del navigatorKey si esta dentro del Navigator.
+    final contextoDelNavigator = navigatorKey.currentContext;
+    if (contextoDelNavigator == null) {
+      _rastro('sin contexto de Navigator, no se muestra el aviso');
+      return;
+    }
+    if (!contextoDelNavigator.read<AuthProvider>().autenticado) {
+      _rastro('nadie con sesion abierta, no se muestra el aviso');
+      return;
+    }
 
+    _rastro('inactividad alcanzada, mostrando aviso');
     _dialogShowing = true;
     try {
       final seguirConectado = await showDialog<bool>(
-        context: context,
+        context: contextoDelNavigator,
         barrierDismissible: false,
         builder: (_) => const SessionWarningDialog(),
       );
-      if (!mounted) return;
       if (seguirConectado == true) {
+        _rastro('el usuario sigue conectado');
+        _dialogShowing = false;
         _resetIdleTimer();
       } else {
-        await context.read<AuthProvider>().cerrarSesion();
+        _rastro('cerrando sesion por inactividad');
+        await _cerrarSesion();
       }
     } finally {
       _dialogShowing = false;
     }
+  }
+
+  Future<void> _cerrarSesion() async {
+    final contextoDelNavigator = navigatorKey.currentContext;
+    if (contextoDelNavigator == null) return;
+    final auth = contextoDelNavigator.read<AuthProvider>();
+    if (!auth.autenticado) return;
+    await auth.cerrarSesion();
   }
 
   @override
@@ -88,9 +118,8 @@ class _InactivityWrapperState extends State<InactivityWrapper> with WidgetsBindi
       if (!kIsWeb &&
           backgroundedAt != null &&
           DateTime.now().difference(backgroundedAt) > _idleTimeout) {
-        if (mounted && context.read<AuthProvider>().autenticado) {
-          context.read<AuthProvider>().cerrarSesion();
-        }
+        _rastro('volvio tras demasiado tiempo en segundo plano');
+        _cerrarSesion();
       } else {
         _resetIdleTimer();
       }
