@@ -105,11 +105,37 @@ class _AdminShellState extends State<_AdminShell> {
     return Scaffold(
       appBar: auth.enModoPlataforma
           ? AppBar(
-              title: Text('Operando: ${auth.sesion?.nombre ?? ""}'),
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),
                 tooltip: 'Volver a plataforma',
                 onPressed: () => context.read<AuthProvider>().volverAPlataforma(),
+              ),
+              title: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset('assets/icons/logicono.webp', width: 30, height: 30, fit: BoxFit.cover),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Comanda',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: -0.3),
+                        ),
+                        Text(
+                          'Operando: ${auth.sesion?.nombre ?? ""}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             )
           : null,
