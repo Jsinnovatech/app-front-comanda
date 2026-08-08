@@ -33,6 +33,8 @@ class _PanelDePlataforma extends StatefulWidget {
 class _PanelDePlataformaState extends State<_PanelDePlataforma> {
   int _tab = 0;
 
+  static const _titulos = ['Dashboard', 'Restaurantes'];
+
   @override
   Widget build(BuildContext context) {
     final sesion = context.watch<AuthProvider>().sesion;
@@ -43,7 +45,18 @@ class _PanelDePlataformaState extends State<_PanelDePlataforma> {
       appBar: AppBar(
         backgroundColor: AppColors.black,
         foregroundColor: AppColors.yellow,
-        title: Text(sesion != null ? 'Comanda · ${sesion.nombre}' : 'Comanda'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_titulos[_tab], style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
+            if (sesion != null)
+              Text(
+                sesion.nombre,
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.yellow.withValues(alpha: 0.7)),
+              ),
+          ],
+        ),
         actions: [BotonSalir(onPressed: () => context.read<AuthProvider>().cerrarSesion())],
       ),
       body: pantallas[_tab],

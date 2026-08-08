@@ -43,7 +43,7 @@ class PlataformaDashboard extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             for (final restaurante in restaurantes) ...[
-              _TarjetaRestaurante(restaurante: restaurante),
+              _AcordeonRestaurante(restaurante: restaurante),
               const SizedBox(height: 10),
             ],
           ],
@@ -108,23 +108,35 @@ class _TarjetaRestaurantesActivos extends StatelessWidget {
   }
 }
 
-class _TarjetaRestaurante extends StatelessWidget {
+/// Tarjeta-acordeon: cerrada muestra lo mismo que antes (logo, nombre,
+/// etiquetas de comprobante). Al expandir, pide el resumen (admins + conteo
+/// de mesas/mesero/cocinero/cajero) solo para ESE restaurante - no se carga
+/// nada de mas hasta que el usuario abre la tarjeta.
+class _AcordeonRestaurante extends StatelessWidget {
   final RestauranteModel restaurante;
 
-  const _TarjetaRestaurante({required this.restaurante});
+  const _AcordeonRestaurante({required this.restaurante});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.line),
       ),
-      child: Row(
-        children: [
-          Container(
+      clipBehavior: Clip.antiAlias,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
+          iconColor: AppColors.yellow,
+          collapsedIconColor: AppColors.textDim,
+          onExpansionChanged: (abierto) {
+            if (abierto) context.read<PlataformaProvider>().cargarResumen(restaurante.id);
+          },
+          leading: Container(
             width: 42,
             height: 42,
             decoration: BoxDecoration(
@@ -138,42 +150,121 @@ class _TarjetaRestaurante extends StatelessWidget {
               color: restaurante.activo ? AppColors.black : AppColors.textDim,
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          title: Text(
+            restaurante.nombre,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.black),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
               children: [
-                Text(
-                  restaurante.nombre,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.black,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    if (!restaurante.activo)
-                      const _Etiqueta(texto: 'Inactivo', fondo: AppColors.redSoft, tinta: AppColors.red),
-                    if (restaurante.puedeEmitirBoleta)
-                      const _Etiqueta(texto: 'Boleta', fondo: AppColors.greenSoft, tinta: AppColors.green),
-                    if (restaurante.puedeEmitirFactura)
-                      const _Etiqueta(texto: 'Factura', fondo: AppColors.greenSoft, tinta: AppColors.green),
-                    if (!restaurante.puedeEmitirBoleta && !restaurante.puedeEmitirFactura)
-                      const _Etiqueta(
-                        texto: 'Solo nota de venta',
-                        fondo: AppColors.gray,
-                        tinta: AppColors.textDim,
-                      ),
-                  ],
-                ),
+                if (!restaurante.activo)
+                  const _Etiqueta(texto: 'Inactivo', fondo: AppColors.redSoft, tinta: AppColors.red),
+                if (restaurante.puedeEmitirBoleta)
+                  const _Etiqueta(texto: 'Boleta', fondo: AppColors.greenSoft, tinta: AppColors.green),
+                if (restaurante.puedeEmitirFactura)
+                  const _Etiqueta(texto: 'Factura', fondo: AppColors.greenSoft, tinta: AppColors.green),
+                if (!restaurante.puedeEmitirBoleta && !restaurante.puedeEmitirFactura)
+                  const _Etiqueta(texto: 'Solo nota de venta', fondo: AppColors.gray, tinta: AppColors.textDim),
               ],
             ),
+          ),
+          children: [_ContenidoResumen(restauranteId: restaurante.id)],
+        ),
+      ),
+    );
+  }
+}
+
+class _ContenidoResumen extends StatelessWidget {
+  final int restauranteId;
+
+  const _ContenidoResumen({required this.restauranteId});
+
+  @override
+  Widget build(BuildContext context) {
+    final plataforma = context.watch<PlataformaProvider>();
+    final resumen = plataforma.resumenDe(restauranteId);
+    final cargando = plataforma.cargandoResumenDe(restauranteId);
+
+    if (cargando && resumen == null) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 16),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2.4, color: AppColors.yellow)),
+      );
+    }
+    if (resumen == null) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          'No se pudo cargar el detalle.',
+          style: TextStyle(color: AppColors.textDim, fontSize: 12.5, fontWeight: FontWeight.w600),
+        ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: AppColors.gray, borderRadius: BorderRadius.circular(14)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'ADMINISTRA',
+            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: AppColors.textDim, letterSpacing: 0.6),
+          ),
+          const SizedBox(height: 6),
+          if (resumen.admins.isEmpty)
+            const Text(
+              'Sin administrador asignado',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.red),
+            )
+          else
+            for (final admin in resumen.admins)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Text(
+                  admin.email != null ? '${admin.nombre} · ${admin.email}' : admin.nombre,
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.black),
+                ),
+              ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              _Metrica(icono: Icons.table_restaurant, valor: resumen.mesas, etiqueta: 'Mesas'),
+              _Metrica(icono: Icons.room_service, valor: resumen.meseros, etiqueta: 'Meseros'),
+              _Metrica(icono: Icons.soup_kitchen, valor: resumen.cocineros, etiqueta: 'Cocina'),
+              _Metrica(icono: Icons.point_of_sale, valor: resumen.cajeros, etiqueta: 'Caja'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Metrica extends StatelessWidget {
+  final IconData icono;
+  final int valor;
+  final String etiqueta;
+
+  const _Metrica({required this.icono, required this.valor, required this.etiqueta});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        children: [
+          Icon(icono, size: 18, color: AppColors.black),
+          const SizedBox(height: 4),
+          Text('$valor', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.black)),
+          Text(
+            etiqueta,
+            style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppColors.textDim),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/plataforma_provider.dart';
 import '../../mantenimiento/widgets/piezas_mantenimiento.dart';
 import '../../mantenimiento/widgets/selector_imagen.dart';
+import '../screens/crear_restaurante_screen.dart';
 
 /// Cartera de restaurantes del super_admin de plataforma: todos los locales
 /// del sistema, con la puerta de entrada para operar cualquiera de ellos.
@@ -106,9 +107,13 @@ class _ListaRestaurantesState extends State<ListaRestaurantes> {
         backgroundColor: AppColors.yellow,
         foregroundColor: AppColors.black,
         tooltip: 'Nuevo restaurante',
-        onPressed: () => _avisar(
-          'Por ahora, registra restaurantes nuevos con el endpoint publico de registro. Pantalla dedicada: pendiente.',
-          AppColors.black,
+        onPressed: () => Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => ChangeNotifierProvider.value(
+              value: context.read<PlataformaProvider>(),
+              child: const CrearRestauranteScreen(),
+            ),
+          ),
         ),
         child: const Icon(Icons.add),
       ),

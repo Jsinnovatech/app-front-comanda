@@ -107,9 +107,9 @@ class _PanelDeMantenimiento extends StatelessWidget {
                 labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
                 unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
                 tabs: [
+                  const Tab(height: 46, text: 'Personal'),
                   const Tab(height: 46, text: 'Platos'),
                   const Tab(height: 46, text: 'Mesas'),
-                  const Tab(height: 46, text: 'Personal'),
                   const Tab(height: 46, text: 'Cartas'),
                   if (esSuperAdmin) const Tab(height: 46, text: 'Restaurante'),
                 ],
@@ -119,9 +119,9 @@ class _PanelDeMantenimiento extends StatelessWidget {
         ),
         body: TabBarView(
           children: [
+            const TabPersonal(),
             const TabPlatos(),
             const TabMesas(),
-            const TabPersonal(),
             const TabCartas(),
             if (esSuperAdmin) const TabRestaurante(),
           ],

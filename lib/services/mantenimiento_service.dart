@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../core/config/api_config.dart';
 import '../core/network/api_client.dart';
 import '../models/restaurante_model.dart';
+import '../models/restaurante_resumen_model.dart';
 import '../models/personal_model.dart';
 import '../models/mesa_model.dart';
 import '../models/plato_model.dart';
@@ -45,6 +46,13 @@ class MantenimientoService {
   static Future<List<RestauranteModel>> listarRestaurantes() async {
     final data = await ApiClient.get(ApiConfig.restaurantes) as List<dynamic>;
     return data.map((r) => RestauranteModel.fromJson(r)).toList();
+  }
+
+  /// Panel de plataforma: admins y conteo de personal/mesas de un
+  /// restaurante especifico. Se pide al expandir su acordeon, no de entrada.
+  static Future<RestauranteResumenModel> obtenerResumenRestaurante(int id) async {
+    final data = await ApiClient.get('${ApiConfig.restaurantes}/$id/resumen');
+    return RestauranteResumenModel.fromJson(data);
   }
 
   /// super_admin "entra" a operar un restaurante especifico: el backend

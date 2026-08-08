@@ -30,7 +30,7 @@ const _gruposPorTipo = <String, String>{
   'super_admin': 'Dueño',
 };
 
-const _ordenDeGrupos = ['cocinero', 'mesero', 'cajero', 'admin', 'super_admin'];
+const _ordenDeGrupos = ['super_admin', 'admin', 'mesero', 'cocinero', 'cajero'];
 
 /// Quien entra con PIN y quien entra con email+password: los roles de piso
 /// comparten tablet y se identifican con un codigo corto; el administrador
