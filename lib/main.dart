@@ -11,6 +11,7 @@ import 'features/cocina/screens/cocina_screen.dart';
 import 'features/caja/screens/caja_screen.dart';
 import 'features/mantenimiento/screens/mantenimiento_home_screen.dart';
 import 'features/dashboard/screens/dashboard_screen.dart';
+import 'features/plataforma/screens/plataforma_shell_screen.dart';
 
 void main() {
   runApp(const ComandaApp());
@@ -71,17 +72,22 @@ class _HomePorRol extends StatelessWidget {
         return const CocinaScreen();
       case 'cajero':
         return const CajaScreen();
-      case 'super_admin':
       case 'admin':
         return const _AdminShell();
+      case 'super_admin':
+        // Si entro a operar un restaurante especifico (via PlataformaShellScreen),
+        // ve el mismo shell restaurante-scoped que admin. Si no, ve la plataforma.
+        final enModoPlataforma = context.watch<AuthProvider>().enModoPlataforma;
+        return enModoPlataforma ? const _AdminShell() : const PlataformaShellScreen();
       default:
         return Scaffold(body: Center(child: Text('Rol desconocido: ${sesion.tipoColaborador}')));
     }
   }
 }
 
-/// super_admin/admin ven 2 pestañas: Dashboard (analitica) y Mantenimiento
-/// (platos/mesas/personal/cartas). Un solo shell para ambos roles.
+/// super_admin (operando un restaurante especifico)/admin ven 2 pestañas:
+/// Dashboard (analitica) y Mantenimiento (platos/mesas/personal/cartas).
+/// Un solo shell para ambos roles.
 class _AdminShell extends StatefulWidget {
   const _AdminShell();
 
@@ -94,8 +100,19 @@ class _AdminShellState extends State<_AdminShell> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
     final pantallas = [const DashboardScreen(), const MantenimientoHomeScreen()];
     return Scaffold(
+      appBar: auth.enModoPlataforma
+          ? AppBar(
+              title: Text('Operando: ${auth.sesion?.nombre ?? ""}'),
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Volver a plataforma',
+                onPressed: () => context.read<AuthProvider>().volverAPlataforma(),
+              ),
+            )
+          : null,
       body: pantallas[_tab],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,

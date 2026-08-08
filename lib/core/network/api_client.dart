@@ -85,4 +85,9 @@ class ApiClient {
     );
     return _procesarRespuesta(response);
   }
+
+  static Future<dynamic> delete(String url, {bool conAuth = true}) async {
+    final response = await http.delete(Uri.parse(url), headers: await _headers(conAuth: conAuth));
+    return _procesarRespuesta(response);
+  }
 }

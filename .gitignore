@@ -7,6 +7,9 @@
 build/
 *.g.dart
 
+# graphify (analisis local, no es parte del proyecto)
+graphify-out/
+
 # IDE
 .vscode/
 .idea/

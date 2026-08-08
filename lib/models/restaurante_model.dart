@@ -2,6 +2,7 @@ class RestauranteModel {
   final int id;
   final String nombre;
   final String? fotoUrl;
+  final bool activo;
   final int? superAdminId;
   final String modoAsignacionMesas; // 'estricto' | 'comodin'
   final String? ruc;
@@ -12,6 +13,7 @@ class RestauranteModel {
     required this.id,
     required this.nombre,
     this.fotoUrl,
+    required this.activo,
     this.superAdminId,
     required this.modoAsignacionMesas,
     this.ruc,
@@ -24,6 +26,7 @@ class RestauranteModel {
       id: json['id'],
       nombre: json['nombre'],
       fotoUrl: json['foto_url'],
+      activo: json['activo'] ?? true,
       superAdminId: json['super_admin_id'],
       modoAsignacionMesas: json['modo_asignacion_mesas'],
       ruc: json['ruc'],

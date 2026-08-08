@@ -41,6 +41,32 @@ class MantenimientoService {
     );
   }
 
+  /// Panel de plataforma (super_admin): todos los restaurantes activos.
+  static Future<List<RestauranteModel>> listarRestaurantes() async {
+    final data = await ApiClient.get(ApiConfig.restaurantes) as List<dynamic>;
+    return data.map((r) => RestauranteModel.fromJson(r)).toList();
+  }
+
+  /// super_admin "entra" a operar un restaurante especifico: el backend
+  /// mintea un token nuevo escaneado a ese restaurante_id. La sesion de
+  /// plataforma original la conserva AuthProvider para poder volver.
+  static Future<SesionActual> entrarARestaurante(int id) async {
+    final data = await ApiClient.post('${ApiConfig.restaurantes}/$id/entrar');
+    return SesionActual(
+      accessToken: data['access_token'],
+      personalId: data['personal_id'],
+      restauranteId: data['restaurante_id'],
+      nombre: data['nombre'],
+      tipoColaborador: data['tipo_colaborador'],
+    );
+  }
+
+  /// Soft delete: el backend desactiva, no borra (hay comprobantes fiscales
+  /// ligados que deben conservarse).
+  static Future<void> eliminarRestaurante(int id) async {
+    await ApiClient.delete('${ApiConfig.restaurantes}/$id');
+  }
+
   static Future<RestauranteModel> obtenerRestaurante(int id) async {
     final data = await ApiClient.get('${ApiConfig.restaurantes}/$id');
     return RestauranteModel.fromJson(data);

@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/network/api_client.dart';
 import '../models/personal_model.dart';
 import '../services/auth_service.dart';
+import '../services/mantenimiento_service.dart';
 
 const _sesionKey = 'sesion_actual';
 
@@ -12,11 +13,17 @@ const _sesionKey = 'sesion_actual';
 /// nunca guardan su propia copia de "quien soy".
 class AuthProvider extends ChangeNotifier {
   SesionActual? _sesion;
+  // Cuando un super_admin de plataforma "entra" a operar un restaurante
+  // especifico, aca queda la sesion de plataforma original para poder
+  // volver. Solo vive en memoria (no se persiste): un refresh de pagina
+  // mientras se esta "dentro" de un restaurante no la recupera.
+  SesionActual? _sesionPlataforma;
   bool _cargando = true;
 
   SesionActual? get sesion => _sesion;
   bool get cargando => _cargando;
   bool get autenticado => _sesion != null;
+  bool get enModoPlataforma => _sesionPlataforma != null;
 
   AuthProvider() {
     _restaurarSesion();
@@ -78,6 +85,31 @@ class AuthProvider extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_sesionKey);
     _sesion = null;
+    _sesionPlataforma = null;
+    notifyListeners();
+  }
+
+  /// super_admin de plataforma entra a operar un restaurante: guarda la
+  /// sesion actual como "de plataforma" y activa la nueva, escaneada a ese
+  /// restaurante. El resto de la app (Mantenimiento/Dashboard) no cambia,
+  /// sigue leyendo `sesion.restauranteId` como siempre.
+  Future<void> entrarARestaurante(int restauranteId) async {
+    final sesionEscaneada = await MantenimientoService.entrarARestaurante(restauranteId);
+    _sesionPlataforma = _sesion;
+    await ApiClient.guardarToken(sesionEscaneada.accessToken);
+    await _guardarSesionEnDisco(sesionEscaneada);
+    _sesion = sesionEscaneada;
+    notifyListeners();
+  }
+
+  /// Vuelve de operar un restaurante especifico a la vista de plataforma.
+  Future<void> volverAPlataforma() async {
+    final plataforma = _sesionPlataforma;
+    if (plataforma == null) return;
+    await ApiClient.guardarToken(plataforma.accessToken);
+    await _guardarSesionEnDisco(plataforma);
+    _sesion = plataforma;
+    _sesionPlataforma = null;
     notifyListeners();
   }
 }
